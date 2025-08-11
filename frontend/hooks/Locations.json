@@ -1,0 +1,40 @@
+{
+  "regions": [
+    {
+      "id": "cape-town",
+      "name": "Cape Town, Western Cape",
+      "suggestions": [
+        {
+          "type": "fruit",
+          "title": "Strawberries",
+          "subtitle": "Cool-season berry",
+          "description": "Strawberries thrive in mild Western Cape winters and summers.",
+          "image": "https://example.com/images/strawberries.jpg",
+          "detailsLink": "https://example.com/strawberries-info"
+        },
+        {
+          "type": "vegetable",
+          "title": "Lettuce",
+          "subtitle": "Leafy green",
+          "description": "Grows well in winter with regular watering.",
+          "image": "https://example.com/images/lettuce.jpg",
+          "detailsLink": "https://example.com/lettuce-info"
+        }
+      ]
+    },
+    {
+      "id": "durban",
+      "name": "Durban, KwaZulu‑Natal",
+      "suggestions": [
+        {
+          "type": "plant",
+          "title": "Bird of Paradise",
+          "subtitle": "Tropical ornamental",
+          "description": "Thrives in warm, humid climates of coastal KZN.",
+          "image": "https://example.com/images/bird-of-paradise.jpg",
+          "detailsLink": "https://example.com/bird-of-paradise-info"
+        }
+      ]
+    }
+  ]
+}
