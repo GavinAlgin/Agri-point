@@ -293,14 +293,14 @@ const PlantSuggestionList = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Suggestions for {regionName}</Text>
+      {/* <Text style={styles.header}>Suggestions for {regionName}</Text> */}
       <FlatList data={suggestions} keyExtractor={(item) => item.title} renderItem={renderItem} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
+  container: { flex: 1, padding: 4, marginTop: 10, },
   header: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
   card: { flexDirection: 'row', marginBottom: 16, backgroundColor: '#f9f9f9', borderRadius: 8, overflow: 'hidden' },
   image: { width: 100, height: 100 },

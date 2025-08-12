@@ -24,6 +24,8 @@ const greetings = [
   { text: 'Molo', language: 'Xhosa' },
   { text: 'Dumelang', language: 'Tswana' },
   { text: 'Lumela', language: 'Sesotho' },
+  { text: 'Ndaa!', language: 'Venda' },
+  { text: 'Salotsha', language: 'Ndebele' },
 ];
 
 const Index = () => {
@@ -41,7 +43,6 @@ const Index = () => {
 
   return (
     <SafeAreaView style={styles.Container}>
-      <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.Header}>
           <Text style={styles.GreetingText}>{currentGreeting.text}, Gavin</Text>
@@ -89,6 +90,7 @@ const Index = () => {
 
         <PlantSuggestionList />
       </ScrollView>
+      <StatusBar style='dark' />
     </SafeAreaView>
   );
 };
