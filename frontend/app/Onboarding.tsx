@@ -39,7 +39,7 @@ const Onboarding: React.FC = () => {
               </Text>
             </View>
 
-            <TouchableOpacity style={styles.proceedButton} onPress={() => router.push('/(tabs)')}>
+            <TouchableOpacity style={styles.proceedButton} onPress={() => router.push('/(auth)/Login')}>
               <Text style={styles.proceedButtonText}>Get Started</Text>
             </TouchableOpacity>
           </View>
