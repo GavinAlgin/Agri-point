@@ -8,11 +8,11 @@ export const login = async (username, password) => {
   await saveToken('refresh_token', refresh);
 };
 
-export const register = async ({ username, email, password }) => {
-  // Assuming you have a Django endpoint for registration
-  return await api.post('/register/', {
-    username,
-    email,
-    password,
+export const register = async (userData) => {
+  const res = await axios.post(`${BASE_URL}/register/`, userData, {
+    headers: {
+      "Content-Type": "application/json"
+    }
   });
+  return res.data;
 };
