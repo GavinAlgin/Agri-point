@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from .models import Post, Crop
-from .serializers import PostSerializer, CropSerializer
+from .serializers import PostSerializer, CropSerializer, UserSerializer
 from django.contrib.auth.models import User
 from rest_framework import generics, permissions
 from rest_framework.response import Response
@@ -10,7 +10,6 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 
-from rest_framework.serializers import ModelSerializer
 
 # Create your views here.
 class PostViewSet(viewsets.ModelViewSet):
@@ -23,12 +22,6 @@ class CropViewSet(viewsets.ModelViewSet):
     queryset = Crop.objects.all()
     serializer_class = CropSerializer
     permission_classes = [IsAuthenticated]
-
-
-class UserSerializer(ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email']
 
 
 # Signup view
