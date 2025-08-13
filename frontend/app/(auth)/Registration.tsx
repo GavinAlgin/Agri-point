@@ -26,6 +26,8 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [firstname, setFirstname] = useState('');
+  const [lastname, setLastname ] = useState('');
 
   const validateForm = (): boolean => {
     if (!email || !username || !password || !confirmPassword) {
@@ -59,6 +61,8 @@ const Register = () => {
 
     try {
       const response = await axios.post('http://192.168.220.137:8000/api/register/', {
+        firstname,
+        lastname,
         email,
         username,
         password,
@@ -107,6 +111,20 @@ const Register = () => {
           placeholder="Username"
           value={username}
           onChangeText={setUsername}
+          autoCapitalize="none"
+          style={styles.InputBtn}
+        />
+        <TextInput
+          placeholder="First name"
+          value={firstname}
+          onChangeText={setFirstname}
+          autoCapitalize="none"
+          style={styles.InputBtn}
+        />
+        <TextInput
+          placeholder="Last name"
+          value={lastname}
+          onChangeText={setLastname}
           autoCapitalize="none"
           style={styles.InputBtn}
         />
