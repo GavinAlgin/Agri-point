@@ -103,9 +103,7 @@ const Login = () => {
           <Text style={styles.Forgot}>Forgot Password?</Text>
         </Pressable>
 
-        <View style={styles.Separator}>
-            <Text>OR</Text>
-        </View>
+        <View style={styles.Separator} />
 
         <TouchableOpacity style={styles.LoginBtn} onPress={() => router.push('/(auth)/Registration')}>
           <Text style={styles.BtnTitle}>Create an Account</Text>

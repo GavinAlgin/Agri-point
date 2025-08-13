@@ -10,9 +10,12 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  ToastAndroid,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
+import { Link, useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -22,6 +25,7 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const validateForm = (): boolean => {
     if (!email || !username || !password || !confirmPassword) {
@@ -61,6 +65,7 @@ const Register = () => {
       });
 
       console.log('Registration successful:', response.data);
+      ToastAndroid.show("Success! Account created", ToastAndroid.SHORT);
       Alert.alert('Success', 'Account created successfully.');
       // Optionally navigate to login screen
     } catch (error: any) {
@@ -69,6 +74,10 @@ const Register = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOAuth = async () => {
+    return ToastAndroid.show('Google Auth Coming Soon!',  ToastAndroid.SHORT);
   };
 
   return (
@@ -80,7 +89,8 @@ const Register = () => {
       <View style={styles.Content}>
         <Text style={{ fontSize: 28, fontWeight: 'bold' }}>Create an account</Text>
         <Text style={{ color: '#777', fontSize: 18 }}>
-          Fill in the details to get started.
+          Create your account, it takes less than a minute. 
+          Enter your email and password
         </Text>
       </View>
 
@@ -124,7 +134,20 @@ const Register = () => {
             <Text style={styles.BtnTitle}>Sign Up</Text>
           )}
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.LoginBtn} onPress={handleOAuth} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.BtnTitle}>Continue with Google</Text>
+          )}
+        </TouchableOpacity>
       </View>
+
+      <Text style={{ textAlign: 'center', marginTop: 16, }}>Already have an account? 
+        <Link href={'/(auth)/Login'} style={{ fontSize: 16, fontWeight: 'bold', color: '#103713', }}>Login</Link>
+      </Text>
+
 
       <StatusBar style="dark" />
     </SafeAreaView>
