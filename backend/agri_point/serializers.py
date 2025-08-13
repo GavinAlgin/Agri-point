@@ -7,13 +7,13 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = '__all__'
-        # read_only_fields = ['user']
+        read_only_fields = ['user']
 
 class CropSerializer(serializers.ModelSerializer):
     class Meta:
         model = Crop
         fields = '__all__'
-        # read_only_fields = ['user']
+        read_only_fields = ['user']
 
 
 class UserSerializer(ModelSerializer):
