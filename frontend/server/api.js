@@ -4,6 +4,9 @@ import { getToken } from '../utils/tokenStorage';
 
 const instance = axios.create({
   baseURL: 'http://localhost:8081/api',
+  headers: {
+    'Content-Type' : 'application/json',
+  },
 });
 
 // Add token to every request if available

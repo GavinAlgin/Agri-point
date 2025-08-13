@@ -54,7 +54,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://your-django-url.com/api/register/', {
+      const response = await axios.post('http://192.168.220.137:8000/api/register/', {
         email,
         username,
         password,

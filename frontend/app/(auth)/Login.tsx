@@ -45,12 +45,10 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://your-django-url.com/api/login/', {
+      const response = await axios.post('http://192.168.220.137:8000/api/login/', {
         email,
         password,
       });
-
-      // You can store token, navigate, etc.
       console.log('Login success', response.data);
       Alert.alert('Login Successful', `Welcome, ${response.data.user.name}`);
     } catch (error: any) {
