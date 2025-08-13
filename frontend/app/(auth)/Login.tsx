@@ -1,216 +1,184 @@
-import { StyleSheet, Text, View, TextInput, Pressable, Switch } from 'react-native'
-import { Link, useRouter } from 'expo-router'
-import React, { useState } from 'react'
+import { FontAwesome5 } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import {
+  Dimensions,
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Pressable,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthIcons } from './authIcons';
-import { Image } from 'react-native';
+import axios from 'axios';
+import { useRouter } from 'expo-router';
 
-function Login() {
-    const router = useRouter();
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+const { width } = Dimensions.get('window');
 
-    //
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-    //          VALIDATING USERS DETAILS
-    const [usernameValue, setUsernameValue] = useState('');
-    const [usernameError, setUsernameError] = useState('');
-
-    const [passwordValue, setPasswordValue] = useState('');
-    const [passwordError, setPasswordError] = useState('');
-    const handleSubmit = () => {
-        
-        if(!usernameValue.trim()){
-            setUsernameError('username field is empty')
-            return;
-        }else if(!passwordValue.trim()){
-            setPasswordError('password field is empty')
-            return;            
-        }else{
-            //validated successfully, send data
-            alert(`username: ${usernameValue}, password: ${passwordValue}`)
-        }
-        setUsernameError('');
-        setPasswordError('')
-        
-    }
-    ///////////////////////////////////////////////////////////
-
-    //          PASSWORD VISIBILITY TOOGLE
-    const [showPassword, setShowPassword] = useState(false);
-    const toogleVisibility = () => {
-        setShowPassword(!showPassword)
+  const validateForm = (): boolean => {
+    if (!email || !password) {
+      Alert.alert('Validation Error', 'Please fill in all fields.');
+      return false;
     }
 
-    //          CHECKBOX HANDLING
-    const [checked, setChecked]=useState(false)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleLogin = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post('http://your-django-url.com/api/login/', {
+        email,
+        password,
+      });
+
+      // You can store token, navigate, etc.
+      console.log('Login success', response.data);
+      Alert.alert('Login Successful', `Welcome, ${response.data.user.name}`);
+    } catch (error: any) {
+      console.error('Login failed:', error.response?.data || error.message);
+      Alert.alert('Login Failed', error.response?.data?.detail || 'An error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <SafeAreaView style={{backgroundColor: '#edf3ff', height: '100%'}}>
-        <View style={[styles.wrapper, {height: '100%'}]}>
-            {/*         BACK BUTTON ROW             */}
-            <View style={[styles.block, {marginLeft: -9}]}>
-                <Link href='/' >
-                    <Image source={AuthIcons[0]} style={{width: 35, height: 35, borderRadius: 50}} />
-                </Link>
-            </View>
-            {/*         LOGIN HEADING            */}
-            <View style={styles.block}>
-                <Text style={{fontSize: 23, fontWeight: 'bold'}}>Log In</Text>
-            </View>
-            <View style={styles.block}>
-                <Text style={{color: 'grey', fontSize: 16}}>Log in to continue haversting</Text>
-            </View>
-        
-            {/*               LOGIN FORM                   */}
-            <View style={[styles.block, {height: 340}]}>
-                
-                {/*   username input and error handling     */}
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 17, fontWeight: 'bold'}]}>
-                        Email
-                    </Text>
-                </View>
-                { usernameError ?
-                <View style={styles.row}>
-                    <Text style={[styles.cell, {fontSize: 15, fontWeight: 'bold', color: 'red'}]}>
-                        {usernameError}
-                    </Text> 
-                </View> : null }
-                <View style={[styles.row, {borderWidth: 2, borderColor: 'grey', borderRadius: 15, backgroundColor: '#f2f6ff'}]}>
-                    <Image source={AuthIcons[3]} style={{width: 20, height: 20, margin: 10}}/>
-                    <View style={[styles.cell, { borderColor: 'grey', borderRadius: 10, width: 100}]}>
-                        <TextInput 
-                            placeholder='Enter your email'
-                            value={usernameValue}
-                            onChangeText={(text) => {
-                                setUsernameValue(text);
-                                if(usernameError) setUsernameError('')
-                            }}
-                            style={{width: 280}}
-                        />
-                    </View>
-                </View>
+    <SafeAreaView style={styles.Container}>
+      <View style={styles.HeaderContainer}>
+        <FontAwesome5 name="star-of-life" size={24} color="white" />
+      </View>
 
-                {/*     password input and error handling    */}
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 17, fontWeight: 'bold'}]}>
-                        Password
-                    </Text>
-                </View>
-                {passwordError ? 
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 15, fontWeight: 'bold', color: 'red'}]}>
-                        {passwordError}
-                    </Text>
-                </View> : null }
-                <View style={[styles.row,{borderWidth: 2, borderColor: 'grey', borderRadius: 15,backgroundColor: '#f2f6ff'}]}>
-                    <Image source={AuthIcons[4]} style={{width: 20, height: 20, margin: 9}}/>
-                    <View style={styles.cell}>
-                        <TextInput 
-                            placeholder='Enter your password'
-                            secureTextEntry={!showPassword}
-                            value={passwordValue}
-                            onChangeText={(text) => {
-                                setPasswordValue(text);
-                                if(passwordError) setPasswordError('')
-                            }}
-                            style={{width: 260}}
-                        />
-                    </View>
-                    <Pressable onPress={toogleVisibility}>
-                        {showPassword ? 
-                            <Image source={AuthIcons[2]} style={{width: 20, height: 20, margin: 10}}/> :
-                            <Image source={AuthIcons[1]} style={{width: 20, height: 20, margin: 10}}/> 
-                        }
-                    </Pressable>
-                </View>
+      <View style={styles.Content}>
+        <Text style={{ fontSize: 28, fontWeight: 'bold' }}>Welcome back,</Text>
+        <Text style={{ color: '#777', fontSize: 18 }}>
+          We’re happy to see you here. Enter your email address and password.
+        </Text>
+      </View>
 
-                {/*             BUTTONS                */}
-                {/*         CHECKBOX AND FORGOT PASSWORD    */}
-                <View style={styles.row}>
-                    <Switch 
-                        value={checked}
-                        onValueChange={setChecked}
-                    />
-                    <Text style={{color: 'grey', marginTop: 13, marginHorizontal: 5}}>Keep me logged in</Text>
-                    <Link href='/Forgot' style={{margin: 13, marginHorizontal: 50}}>
-                        <Text style={{color: '#0d7eff', fontWeight: 'bold'}} onPress={() => router.push('/(auth)/Forgot')}>Forgot Password</Text>
-                    </Link>
-                </View>
-                {/*     LOGIN BTN   */}
-                <View style={styles.row}>
-                    <View style={[styles.cell, {flex: 1}]}>
-                    <Pressable
-                        style={({pressed}) => [
-                        styles.btn, 
-                        {backgroundColor: pressed ? 'grey' : '#0d7efe', opacity: pressed ? 0.8 : 1}
-                        ]}
-                        onPress={handleSubmit}
-                    >
-                        <Text style={styles.btnTitle}>Log In</Text>
-                    </Pressable>
-                    </View>
-                </View>
+      <View style={styles.loginForm}>
+        <TextInput
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          style={styles.InputBtn}
+        />
+        <TextInput
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.InputBtn}
+        />
+      </View>
 
-                <View style={[styles.row,{flex: 1, justifyContent: 'center', alignItems: 'center', height: '100%'}]}>
-                    <Text style={[styles.cell, {color: 'grey'}]}>Or log in with</Text>
-                </View>
+      <View style={styles.Btns}>
+        <TouchableOpacity style={styles.LoginBtn} onPress={handleLogin} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.BtnTitle}>Login</Text>
+          )}
+        </TouchableOpacity>
 
-                {/*     REGISTER BTN     */}
-                <View style={[styles.row,{ alignItems: 'center', justifyContent: 'center'}]}>
-                    <View style={styles.cell}>
-                        <Pressable
-                            style={[ styles.btn, {backgroundColor: '#f2f6ff',width: 100}]}
-                        >
-                            <Image source={AuthIcons[7]} style={{width: 20, height: 20}}/>
-                            <Text style={[styles.btnTitle, {color: 'black'}]}>Apple</Text>
-                        </Pressable>
-                    </View>
-                    <View style={[styles.cell,{width: 40}]}></View>
-                    <View style={styles.cell}>
-                        <Pressable
-                            style={[ styles.btn, {backgroundColor: '#f2f6ff',width: 100}]}
-                        >
-                            <Image source={AuthIcons[6]} style={{width: 20, height: 20}}/>
-                            <Text style={[styles.btnTitle, {color: 'black'}]}>Google</Text>
-                        </Pressable>
-                    </View>
-                </View>
-            </View>    
-            <View style={{flex: 1}}>
-                <Text style={{position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center', color: 'grey'}}>
-                    Don't have an account ? <Link href='/Registration'><Text style={{color: '#0d7efe', fontWeight: 'bold' }}>Sign up</Text></Link>
-                </Text>
-            </View>
+        <Pressable>
+          <Text style={styles.Forgot}>Forgot Password?</Text>
+        </Pressable>
+
+        <View style={styles.Separator}>
+            <Text>OR</Text>
         </View>
+
+        <TouchableOpacity style={styles.LoginBtn} onPress={() => router.push('/(auth)/Registration')}>
+          <Text style={styles.BtnTitle}>Create an Account</Text>
+        </TouchableOpacity>
+      </View>
+
+      <StatusBar style="dark" />
     </SafeAreaView>
-)
-}                
-export default Login
+  );
+};
+
+export default Login;
+
 
 const styles = StyleSheet.create({
-    wrapper: {
-        margin: 10,
-        //borderWidth: 1,
+    Container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        padding: width * 0.04,
     },
-    block: {
-        borderRadius: 10,
-        borderColor: 'grey',
-        padding: 5,
-        //borderWidth: 1
-    },
-    row: {
-        flexDirection: 'row',
-        //borderWidth: 1
-    },
-    btn: {
+    HeaderContainer: {
         padding: 12,
-        borderRadius: 8,
+        borderRadius: 10,
+        backgroundColor: '#103713',
         alignItems: 'center',
+        justifyContent: 'flex-start',
+        width: 50,
     },
-    btnTitle:{
+    Content: {
+        flexDirection: 'column',
+        marginTop: 28,
+    },
+    loginForm: {
+        marginTop: 28,
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        gap: 16,
+    },
+    InputBtn: {
+        borderColor: '#ddd',
+        borderWidth: 1,
+        borderRadius: 10,
+        width:  width * 0.9,
+        height: 50,
+    },
+    Btns: {
+        flexDirection: 'column',
+        marginTop: 28,
+        gap: 18,
+    },
+    LoginBtn: {
+        padding: 12,
+        backgroundColor: '#103713',
+        borderRadius: 10,
+        alignItems: 'center'
+    },
+    BtnTitle: {
+        fontSize: 20,
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    Forgot: {
+        textAlign: 'center',
         fontSize: 16,
-        color: 'white'
-    }
+        fontWeight: 'bold',
+        color: '#000',
+    },
+    Separator: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+        marginVertical: 12,
+    },
+
 })

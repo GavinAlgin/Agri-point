@@ -20,7 +20,7 @@ const Onboarding: React.FC = () => {
       <View style={styles.container}>
         {/* Background Video */}
         <Video
-          source={require('../assets/images/motionmesh.mp4')} 
+          source={require('@/assets/images/motionmesh.mp4')} 
           style={styles.video}
           resizeMode="cover"
           shouldPlay

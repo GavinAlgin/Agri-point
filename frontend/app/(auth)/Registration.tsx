@@ -1,247 +1,184 @@
-import { StyleSheet, Text, View, TextInput, Pressable, Alert } from 'react-native'
-import { Link, useRouter } from 'expo-router'
-import React, { useState } from 'react'
+import { FontAwesome5 } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import {
+  Dimensions,
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'react-native';
-import { AuthIcons } from './authIcons';
-import { register } from '@/server/auth';
+import axios from 'axios';
 
-function Registration() {
-    const router=useRouter();
-    const [username, setUsername] = useState('');
-    const [usernameError, setUsernameError] = useState('');
+const { width } = Dimensions.get('window');
 
-    const [password, setPassword] = useState('');
-    const [passwordError, setPasswordError] = useState('');
+const Register = () => {
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const [email, setEmail] = useState('');
-    const [emailError, setEmailError] = useState('');
-    const emailSymbol=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const handleSubmit = () => {
-
-        if(!username.trim()){
-            setUsernameError('username field is empty')
-            return;
-        }else if(!email.trim()){
-            setEmailError('email field is empty')
-            return;            
-        }else if(!emailSymbol.test(email)){
-            setEmailError('email is invalid');
-            return;
-        }else if(!password.trim()){
-            setPasswordError('password field is empty')
-            return;
-        }else if(password.length < 8){
-            setPasswordError('password is too short, enter a max of 8 characters and above');
-            return;
-        }else{                
-            //validated successfully, send data
-            alert(`username: ${username}, password: ${password}, email: ${email} `)
-        }
-        setUsernameError('');
-        setEmailError('');
-        setPasswordError('');
-        
+  const validateForm = (): boolean => {
+    if (!email || !username || !password || !confirmPassword) {
+      Alert.alert('Validation Error', 'Please fill in all fields.');
+      return false;
     }
 
-    //          PASSWORD VISIBILITY TOOGLE
-    const [showPassword, setShowPassword] = useState(false);
-    const toogleVisibility = () => {
-        setShowPassword(!showPassword)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return false;
     }
 
-    // handle submit
-    const handleRegister = async () => {
-        if (!username || !email || !password) {
-        Alert.alert('All fields are required');
-        return;
-        }
-        try {
-        await register({ username, email, password });
-        Alert.alert('Success', 'Account created. You can now log in.');
-        router.navigate('/(auth)/Login');
-        } catch (error) {
-        const errorMsg = error?.response?.data?.error || 'Registration failed';
-        Alert.alert('Error', errorMsg);
-        }
-    };
+    if (password.length < 6) {
+      Alert.alert('Weak Password', 'Password must be at least 6 characters.');
+      return false;
+    }
 
-    
+    if (password !== confirmPassword) {
+      Alert.alert('Password Mismatch', 'Passwords do not match.');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleRegister = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post('http://your-django-url.com/api/register/', {
+        email,
+        username,
+        password,
+      });
+
+      console.log('Registration successful:', response.data);
+      Alert.alert('Success', 'Account created successfully.');
+      // Optionally navigate to login screen
+    } catch (error: any) {
+      console.error('Registration failed:', error.response?.data || error.message);
+      Alert.alert('Registration Failed', error.response?.data?.detail || 'An error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <SafeAreaView style={{backgroundColor: '#edf3ff', height: '100%'}}>    
-        <View style={[styles.wrapper, {height: '100%'}]}>
-            {/*            BACK BUTTON        */}
-            <View style={[styles.block, {marginLeft: -9}]}>
-                <Link href={'/Login'}>
-                    <Image source={AuthIcons[0]} style={{width: 35, height: 35}} />
-                </Link>
-            </View>
-            {/*         LOGIN HEADING            */}
-            <View style={styles.block}>
-                <Text style={{fontSize: 23, fontWeight: 'bold'}}>Create an account</Text>
-            </View>
-            <View style={styles.block}>
-                <Text style={{color: 'grey', fontSize: 16}}>Set up your profile and haverst fast</Text>
-            </View>
-            {/*               LOGIN FORM                   */}
-            <View style={[styles.block, {height: 340}]}>
-                
-                {/*   username input and error handling     */}
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 17, fontWeight: 'bold'}]}>
-                        Name
-                    </Text>
-                </View>
-                { usernameError ?
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 15, fontWeight: 'bold', color: 'red'}]}>
-                        {usernameError}
-                    </Text> 
-                </View> : null }
-                <View style={[styles.row, {borderWidth: 2, borderColor: 'grey', borderRadius: 15, backgroundColor: '#f2f6ff'}]}>
-                    <Image source={AuthIcons[5]} style={{width: 20, height: 20, margin: 10}}/>
-                    <View style={[styles.cell, {width: 100}]}>
-                        <TextInput 
-                            placeholder='Enter Name'
-                            value={username}
-                            onChangeText={(text) => {
-                                setUsername(text);
-                                if(usernameError) setUsernameError('')
-                            }}
-                            style={{width: 280}}
-                        />
-                    </View>
-                </View>
+    <SafeAreaView style={styles.Container}>
+      <View style={styles.HeaderContainer}>
+        <FontAwesome5 name="star-of-life" size={24} color="white" />
+      </View>
 
-                {/*     email input and error handling       */}
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 17, fontWeight: 'bold'}]}>
-                        Email
-                    </Text>
-                </View>
-                {emailError ? 
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 15, fontWeight: 'bold', color: 'red'}]}>
-                        {emailError}
-                    </Text>
-                </View> : null }
-                <View style={[styles.row,{borderWidth: 2, borderColor: 'grey', borderRadius: 10}]}>
-                    <Image source={AuthIcons[3]} style={{width: 20, height: 20, margin: 12}}/>
-                    <View style={[styles.cell, {width: 100}]}>
-                    <TextInput 
-                        placeholder='Enter Email'
-                        value={email}
-                        onChangeText={(text) => {
-                            setEmail(text);
-                            if(setEmailError) setEmailError('')
-                        }}
-                        style={{width: 280}}
-                    />
-                    </View>
-                </View>
+      <View style={styles.Content}>
+        <Text style={{ fontSize: 28, fontWeight: 'bold' }}>Create an account</Text>
+        <Text style={{ color: '#777', fontSize: 18 }}>
+          Fill in the details to get started.
+        </Text>
+      </View>
 
-                {/*     password input and error handling    */}
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 17, fontWeight: 'bold'}]}>
-                        Password
-                    </Text>
-                </View>
-                {passwordError ? 
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 15, fontWeight: 'bold', color: 'red'}]}>
-                        {passwordError}
-                    </Text>
-                </View> : null }
-                <View style={[styles.row, {borderWidth: 2, borderColor: 'grey', borderRadius: 10}]}>
-                    <Image source={AuthIcons[4]} style={{width: 20, height: 20, margin: 10}}/>
-                    <View style={styles.cell }>
-                    <TextInput 
-                        placeholder='Enter Password'
-                        secureTextEntry={!showPassword}
-                        value={password}
-                        onChangeText={(text) => {
-                            setPassword(text);
-                            if(passwordError) setPasswordError('')
-                        }}
-                        style={{width: 260}}
-                    />
-                    </View>
-                    <Pressable onPress={toogleVisibility}>
-                        {showPassword ? 
-                            <Image source={AuthIcons[2]} style={{width: 20, height: 20, margin: 10}}/> :
-                            <Image source={AuthIcons[1]} style={{width: 20, height: 20, margin: 10}}/> 
-                        }
-                    </Pressable>
-                </View>
-                <View style={styles.row}>
-                    <Text style={[styles.cell, {color: 'grey'}]}>Password must be 8 characters</Text>
-                </View>
+      <View style={styles.loginForm}>
+        <TextInput
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          style={styles.InputBtn}
+        />
+        <TextInput
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+          style={styles.InputBtn}
+        />
+        <TextInput
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.InputBtn}
+        />
+        <TextInput
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+          style={styles.InputBtn}
+        />
+      </View>
 
-                {/*             buttons                */}
-                {/*     LOGIN BTN   */}
-                <View style={[styles.row, {marginTop: 9}]}>
-                    <View style={[styles.cell, {flex: 1}]}>
-                    <Pressable
-                        style={({pressed}) => [
-                        styles.btn, 
-                        {backgroundColor: pressed ? 'grey' : '#0d7efe', opacity: pressed ? 0.8 : 1}
-                        ]}
-                        onPress={handleRegister}>
-                        <Text style={styles.btnTitle}>Sign Up</Text>
-                    </Pressable>
-                    </View>
-                </View>
-                <View style={[styles.row,{ alignItems: 'center', justifyContent: 'center', padding: 10}]}>
-                    <View style={styles.cell}>
-                        <Pressable
-                            style={[ styles.btn, {backgroundColor: '#f2f6ff',width: 100}]}
-                        >
-                            <Image source={AuthIcons[7]} style={{width: 20, height: 20}}/>
-                            <Text style={[styles.btnTitle, {color: 'black'}]}>Apple</Text>
-                        </Pressable>
-                    </View>
-                    <View style={[styles.cell,{width: 40}]}></View>
-                    <View style={styles.cell}>
-                        <Pressable
-                            style={[ styles.btn, {backgroundColor: '#f2f6ff',width: 100}]}
-                        >
-                            <Image source={AuthIcons[6]} style={{width: 20, height: 20}}/>
-                            <Text style={[styles.btnTitle, {color: 'black'}]}>Google</Text>
-                        </Pressable>
-                    </View>
-                </View>
-            </View> 
-            <View style={{flex: 1}}>
-                <Text style={{position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center', color: 'grey'}}>
-                    Already have an account ? <Link href='/Login'><Text style={{color: '#0d7efe', fontWeight: 'bold' }}>Log In</Text></Link>
-                </Text>
-            </View>   
-        </View>
+      <View style={styles.Btns}>
+        <TouchableOpacity style={styles.LoginBtn} onPress={handleRegister} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.BtnTitle}>Sign Up</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <StatusBar style="dark" />
     </SafeAreaView>
-)
-}                
-export default Registration
+  );
+};
+
+export default Register;
 
 const styles = StyleSheet.create({
-    wrapper: {
-        margin: 10
-    },
-    block: {
-        borderRadius: 10,
-        borderColor: 'grey',
-        padding: 5
-    },
-    row: {
-        flexDirection: 'row'
-    },
-    btn: {
-        padding: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-
-    },
-    btnTitle:{
-        fontSize: 16,
-        color: 'white'
-    }
-})
+  Container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: width * 0.04,
+  },
+  HeaderContainer: {
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#103713',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    width: 50,
+  },
+  Content: {
+    flexDirection: 'column',
+    marginTop: 28,
+  },
+  loginForm: {
+    marginTop: 28,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  InputBtn: {
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 10,
+    width: width * 0.9,
+    height: 50,
+    paddingHorizontal: 10,
+  },
+  Btns: {
+    flexDirection: 'column',
+    marginTop: 28,
+    gap: 18,
+  },
+  LoginBtn: {
+    padding: 12,
+    backgroundColor: '#103713',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  BtnTitle: {
+    fontSize: 20,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+});
