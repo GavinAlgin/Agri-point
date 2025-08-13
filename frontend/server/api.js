@@ -3,7 +3,7 @@ import axios from 'axios';
 import { getToken } from '../utils/tokenStorage';
 
 const instance = axios.create({
-  baseURL: 'http://localhost:8081/api',
+  baseURL: 'http://192.168.137.1:8000',
 });
 
 // Add token to every request if available

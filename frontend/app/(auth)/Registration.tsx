@@ -62,6 +62,7 @@ function Registration() {
         router.navigate('/(auth)/Login');
         } catch (error) {
         const errorMsg = error?.response?.data?.error || 'Registration failed';
+        console.log(errorMsg);
         Alert.alert('Error', errorMsg);
         }
     };
