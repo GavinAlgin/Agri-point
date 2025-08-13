@@ -11,6 +11,7 @@ import {
   Pressable,
   Alert,
   ActivityIndicator,
+  ToastAndroid,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
@@ -26,13 +27,15 @@ const Login = () => {
 
   const validateForm = (): boolean => {
     if (!email || !password) {
-      Alert.alert('Validation Error', 'Please fill in all fields.');
+      ToastAndroid.show("Validation! Fill in all fields", ToastAndroid.SHORT);
+      // Alert.alert('Validation Error', 'Please fill in all fields.');
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      ToastAndroid.show("Invalid Email", ToastAndroid.SHORT);
+      // Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return false;
     }
 
@@ -50,10 +53,16 @@ const Login = () => {
         password,
       });
       console.log('Login success', response.data);
-      Alert.alert('Login Successful', `Welcome, ${response.data.user.name}`);
+      ToastAndroid.show(`Login Successful! Welcome, ${response.data.user.name}`, ToastAndroid.SHORT);
+      // Alert.alert('Login Successful', `Welcome, ${response.data.user.name}`);
     } catch (error: any) {
+      ToastAndroid.show("Success! Logged In", ToastAndroid.SHORT);
       console.error('Login failed:', error.response?.data || error.message);
-      Alert.alert('Login Failed', error.response?.data?.detail || 'An error occurred.');
+      ToastAndroid.show(
+        "Login Failed: " + (error?.response?.data?.detail || 'An error occurred.'),
+        ToastAndroid.SHORT
+      );
+      // Alert.alert('Login Failed', error.response?.data?.detail || 'An error occurred.');
     } finally {
       setLoading(false);
     }
