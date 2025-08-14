@@ -1,12 +1,13 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from agri_point.views import PostViewSet, CropViewSet, RegisterView, logout_view
+from agri_point.views import PostViewSet, CropViewSet, RegisterView, ProductViewSet, logout_view
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 router = DefaultRouter()
 router.register(r'posts', PostViewSet)
 router.register(r'crops', CropViewSet)
+router.register(r'products', ProductViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

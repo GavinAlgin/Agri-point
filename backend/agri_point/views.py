@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Post, Crop
-from .serializers import PostSerializer, CropSerializer, UserSerializer
+from .models import Post, Crop, Product
+from .serializers import PostSerializer, CropSerializer, UserSerializer, ProductSerializer
 from django.contrib.auth.models import User
 from rest_framework import generics, permissions
 from rest_framework.response import Response
@@ -25,6 +25,15 @@ class PostViewSet(viewsets.ModelViewSet):
 class CropViewSet(viewsets.ModelViewSet):
     queryset = Crop.objects.all()
     serializer_class = CropSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
