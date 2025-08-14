@@ -23,6 +23,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState();
   const router = useRouter();
 
   const validateForm = (): boolean => {
@@ -30,7 +31,10 @@ const Login = () => {
       ToastAndroid.show("Validation! Fill in all fields", ToastAndroid.SHORT);
       // Alert.alert('Validation Error', 'Please fill in all fields.');
       return false;
-    }
+    } else if (!username) {
+      ToastAndroid.show("Validation! Fill in all fields", ToastAndroid.SHORT);
+      return false;
+    } 
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -48,13 +52,16 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://192.168.220.137:8000/api/login/', {
+      const response = await axios.post('http://192.168.8.128:8000/api/login/', {
+        username,
         email,
         password,
       });
       console.log('Login success', response.data);
-      ToastAndroid.show(`Login Successful! Welcome, ${response.data.user.name}`, ToastAndroid.SHORT);
+      ToastAndroid.show("Login Successful!", ToastAndroid.SHORT);
       // Alert.alert('Login Successful', `Welcome, ${response.data.user.name}`);
+
+      router.push('/(tabs)'); // navigate to home screen  
     } catch (error: any) {
       ToastAndroid.show("Success! Logged In", ToastAndroid.SHORT);
       console.error('Login failed:', error.response?.data || error.message);
@@ -91,6 +98,14 @@ const Login = () => {
           style={styles.InputBtn}
         />
         <TextInput
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+          keyboardType="username"
+          style={styles.InputBtn}
+        />
+        <TextInput
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
@@ -108,7 +123,7 @@ const Login = () => {
           )}
         </TouchableOpacity>
 
-        <Pressable>
+        <Pressable onPress={() => router.push('/(tabs)')}>
           <Text style={styles.Forgot}>Forgot Password?</Text>
         </Pressable>
 
@@ -126,6 +141,9 @@ const Login = () => {
 
 export default Login;
 
+// admin@gmail.com
+// gadmin
+// 1234@admin
 
 const styles = StyleSheet.create({
     Container: {

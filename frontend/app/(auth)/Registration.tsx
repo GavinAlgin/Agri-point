@@ -61,7 +61,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://192.168.220.137:8000/api/register/', {
+      const response = await axios.post('http://192.168.8.128:8000/api/register/', {
         email,
         username,
         password,
@@ -84,7 +84,7 @@ const Register = () => {
   };
 
   const handleOAuth = async () => {
-    return ToastAndroid.show('Google Auth Coming Soon!',  ToastAndroid.SHORT);
+    ToastAndroid.show('Google Auth Coming Soon!',  ToastAndroid.SHORT);
   };
 
   return (

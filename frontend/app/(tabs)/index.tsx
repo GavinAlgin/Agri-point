@@ -14,6 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import WeatherCard from '@/components/WeatherCard';
 import { Entypo, FontAwesome6, MaterialCommunityIcons } from '@expo/vector-icons';
 import PlantSuggestionList from '@/components/PlantSuggestionList';
+import CropSelector from '@/components/CategoryFields';
 
 const { width } = Dimensions.get('window');
 
@@ -61,21 +62,7 @@ const Index = () => {
           </View>
         </View>
 
-        {/* Category Buttons */}
-        <View style={styles.categories}>
-          <Pressable style={styles.categoryBtn}>
-            <MaterialCommunityIcons name="fruit-grapes-outline" size={26} color="black" />
-          </Pressable>
-          <Pressable style={styles.categoryBtn}>
-            <MaterialCommunityIcons name="fruit-watermelon" size={26} color="black" />
-          </Pressable>
-          <Pressable style={styles.categoryBtn}>
-            <MaterialCommunityIcons name="food-apple-outline" size={26} color="black" />
-          </Pressable>
-          <Pressable style={{ padding: 16, borderRadius: 10, backgroundColor: '#f7f7f7', width: 60, alignItems: 'center', }}>
-            <Entypo name="plus" size={26} color="black" />
-          </Pressable>
-        </View>
+        <CropSelector />
 
         {/* Suggestions Header */}
         <View style={styles.suggestionsHeader}>
