@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post, Crop, Product
+from .models import Post, Crop, Product, Equipment
 from rest_framework.serializers import ModelSerializer
 from django.contrib.auth.models import User
 
@@ -25,5 +25,12 @@ class UserSerializer(ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
+        fields = '__all__'
+        read_only_fields = ['user']
+
+
+class EquipmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Equipment
         fields = '__all__'
         read_only_fields = ['user']
