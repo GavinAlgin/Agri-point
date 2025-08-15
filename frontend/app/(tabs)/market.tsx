@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Fontisto, Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 const { width, height } = Dimensions.get('window');
 
@@ -47,6 +48,8 @@ const Market = () => {
   const [filteredVendors, setFilteredVendors] = useState(vendors);
 
   const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
+
+  const router = useRouter();
 
   const handleSearch = () => {
     const filtered = vendors.filter(
@@ -102,16 +105,18 @@ const Market = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Image source={item.icon} style={styles.icon} />
-            <View style={styles.info}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.category}>{item.category}</Text>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{item.interest}</Text>
+          <TouchableOpacity onPress={() => router.push('/(screens)/VendorDetailScreen')}>
+            <View style={styles.card}>
+              <Image source={item.icon} style={styles.icon} />
+              <View style={styles.info}>
+                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.category}>{item.category}</Text>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{item.interest}</Text>
+                </View>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </SafeAreaView>

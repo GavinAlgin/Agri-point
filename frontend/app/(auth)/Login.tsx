@@ -52,14 +52,13 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://192.168.8.128:8000/api/login/', {
+      const response = await axios.post('http://192.168.138.137:8000/api/login/', {
         username,
         email,
         password,
       });
       console.log('Login success', response.data);
       ToastAndroid.show("Login Successful!", ToastAndroid.SHORT);
-      // Alert.alert('Login Successful', `Welcome, ${response.data.user.name}`);
 
       router.push('/(tabs)'); // navigate to home screen  
     } catch (error: any) {

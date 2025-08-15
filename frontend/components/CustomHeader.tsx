@@ -97,14 +97,16 @@ import React from 'react';
 import { View, StyleSheet, Pressable, Text } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { Menu, Provider as PaperProvider } from 'react-native-paper';
+import { useRouter } from 'expo-router';
 
-const Header = ({ title, onBackPress }) => {
+const Header = ({ title, }) => {
   const [visible, setVisible] = React.useState(false);
+  const router = useRouter();
 
   return (
     <PaperProvider>
       <View style={styles.header}>
-        <Pressable style={styles.backContainer} onPress={onBackPress}>
+        <Pressable style={styles.backContainer} onPress={() => router.back()}>
           <AntDesign name="arrowleft" size={24} color="#007AFF" />
           <Text style={styles.backText}>Back</Text>
         </Pressable>
@@ -141,5 +143,6 @@ const styles = StyleSheet.create({
   backContainer: { flexDirection: 'row', alignItems: 'center' },
   backText: { marginLeft: 6, fontSize: 16, color: '#007AFF' },
   title: { fontSize: 18, fontWeight: '600', flex: 1, textAlign: 'center', color: '#000' },
-  optionsBtn: { padding: 4 },
+  optionsBtn: { padding: 10, backgroundColor: '#f7f7f7',  borderRadius: 10, },
+
 });

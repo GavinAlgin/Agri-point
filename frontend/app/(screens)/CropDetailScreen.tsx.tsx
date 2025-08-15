@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useCallback, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,27 +6,25 @@ import {
   TouchableOpacity,
   Text,
   TextInput,
+  Modal,
+  Pressable,
 } from 'react-native';
-import MapView, { Marker, Polygon, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Polygon, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import BottomSheet from '@gorhom/bottom-sheet';
 import { FAB } from 'react-native-paper';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const CorpDetailsScreen = () => {
   const navigation = useNavigation();
   const mapRef = useRef<MapView>(null);
-  const bottomSheetRef = useRef<BottomSheet>(null);
-
-  const snapPoints = useMemo(() => ['25%', '50%'], []);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [polygonCoords, setPolygonCoords] = useState<any[]>([]);
   const [freeDrawMode, setFreeDrawMode] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // For Freehand drawing
   const handleMapPress = (event: any) => {
     if (freeDrawMode) {
       setPolygonCoords((prev) => [...prev, event.nativeEvent.coordinate]);
@@ -34,7 +32,6 @@ const CorpDetailsScreen = () => {
   };
 
   const handleSearch = () => {
-    // Simulated drawing of a square area around a point
     const center = {
       latitude: 37.78825,
       longitude: -122.4324,
@@ -54,6 +51,8 @@ const CorpDetailsScreen = () => {
       latitudeDelta: 0.05,
       longitudeDelta: 0.05,
     });
+
+    setIsModalVisible(false);
   };
 
   return (
@@ -62,8 +61,7 @@ const CorpDetailsScreen = () => {
         ref={mapRef}
         style={StyleSheet.absoluteFillObject}
         provider={PROVIDER_GOOGLE}
-        onPress={handleMapPress}
-      >
+        onPress={handleMapPress}>
         {polygonCoords.length > 2 && (
           <Polygon
             coordinates={polygonCoords}
@@ -74,13 +72,13 @@ const CorpDetailsScreen = () => {
         )}
       </MapView>
 
-      {/* Transparent Header */}
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color="white" />
         </TouchableOpacity>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity style={styles.iconButton} onPress={() => setIsModalVisible(true)}>
             <MaterialIcons name="insert-chart" size={24} color="white" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton}>
@@ -89,26 +87,28 @@ const CorpDetailsScreen = () => {
         </View>
       </View>
 
-      {/* Bottom Sheet */}
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={0}
-        snapPoints={snapPoints}
-        backgroundStyle={{ backgroundColor: 'white' }}
+      {/* Native BottomSheet Modal */}
+      <Modal
+        animationType="slide"
+        transparent
+        visible={isModalVisible}
+        onRequestClose={() => setIsModalVisible(false)}
       >
-        <View style={styles.sheetContent}>
-          <Text style={styles.sheetTitle}>Search Area or Place</Text>
-          <TextInput
-            placeholder="Enter location"
-            style={styles.input}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
-            <Text style={styles.searchButtonText}>Search & Highlight</Text>
-          </TouchableOpacity>
-        </View>
-      </BottomSheet>
+        <Pressable style={styles.modalOverlay} onPress={() => setIsModalVisible(false)}>
+          <Pressable style={styles.modalContent} onPress={() => {}}>
+            <Text style={styles.sheetTitle}>Search Area or Place</Text>
+            <TextInput
+              placeholder="Enter location"
+              style={styles.input}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
+              <Text style={styles.searchButtonText}>Search & Highlight</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Floating Buttons */}
       <View style={styles.fabContainer}>
@@ -116,7 +116,6 @@ const CorpDetailsScreen = () => {
           icon="refresh"
           style={styles.fab}
           onPress={() => {
-            // Reset the map and polygon
             setPolygonCoords([]);
             mapRef.current?.animateToRegion({
               latitude: 37.78825,
@@ -131,6 +130,12 @@ const CorpDetailsScreen = () => {
           style={styles.fab}
           onPress={() => setFreeDrawMode(!freeDrawMode)}
           label={freeDrawMode ? 'Drawing: ON' : 'Drawing: OFF'}
+        />
+        <FAB
+          icon="magnify"
+          style={styles.fab}
+          onPress={() => setIsModalVisible(true)}
+          label="Search"
         />
       </View>
     </View>
@@ -160,8 +165,17 @@ const styles = StyleSheet.create({
   iconButton: {
     marginLeft: 12,
   },
-  sheetContent: {
-    padding: 16,
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    minHeight: height * 0.3,
   },
   sheetTitle: {
     fontSize: 18,

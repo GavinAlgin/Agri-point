@@ -318,8 +318,7 @@ const CropSelector = () => {
     setErrorMessage('');
 
     try {
-      // 🔹 Replace with your Django backend URL
-      const response = await fetch('http://your-backend-url/api/crops/', {
+      const response = await fetch('http://192.168.138.137:8000/api/crops/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -477,7 +476,7 @@ const CropSelector = () => {
             <Text style={styles.modalTitle}>Add New Crop</Text>
 
             <TextInput
-              placeholder="Crop Name (e.g. Apple)"
+              placeholder="Enter Crop / Livestock"
               value={newCrop.name}
               onChangeText={(text) =>
                 setNewCrop({ ...newCrop, name: text })
@@ -485,7 +484,7 @@ const CropSelector = () => {
               style={styles.input}
             />
             <TextInput
-              placeholder="Area (sq meters)"
+              placeholder="Enter Area Sqmeter"
               keyboardType="numeric"
               value={newCrop.area}
               onChangeText={(text) =>
@@ -494,7 +493,7 @@ const CropSelector = () => {
               style={styles.input}
             />
             <TextInput
-              placeholder="Location"
+              placeholder="Enter Location"
               value={newCrop.location}
               onChangeText={(text) =>
                 setNewCrop({ ...newCrop, location: text })
@@ -599,3 +598,19 @@ const styles = StyleSheet.create({
     marginTop: -5,
   },
 });
+
+
+//prompt
+// "I want to start a small-scale farming project. I am located in [insert location], and I’m interested in [insert crop or livestock]. I have about [insert space, in square meters, acres, or hectares] of land available.
+
+// Please advise me on:
+
+// Whether this crop or livestock is suitable for my location and climate
+
+// What type of setup or infrastructure I’ll need to get started
+
+// How many units (plants/animals) I can realistically manage in this space
+
+// What are the common challenges in this type of farming in my region
+
+// Any beginner-friendly tips, cost-saving suggestions, or low-budget strategies to help me succeed"

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Switch, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 const { width, height } = Dimensions.get('window');
 
@@ -9,6 +10,7 @@ const Settings = () => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true);
   const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(false);
+  const router = useRouter();
 
   const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
   const toggleNotifications = () => setIsNotificationsEnabled(prev => !prev);
@@ -69,6 +71,10 @@ const Settings = () => {
             <Ionicons name="chevron-forward" size={20} color="#ccc" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingsItem}>
+            <Text style={styles.settingsText}>SOS Response</Text>
+            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.settingsItem} onPress={() => router.push('/(screens)/GenerativeScreen')}>
             <Text style={styles.settingsText}>Chats</Text>
             <Ionicons name="chevron-forward" size={20} color="#ccc" />
           </TouchableOpacity>
