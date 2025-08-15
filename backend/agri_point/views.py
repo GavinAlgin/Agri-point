@@ -7,7 +7,7 @@ from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -20,7 +20,15 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-
+# auth
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def current_user_view(request):
+    user = request.user
+    return Response({
+        'username': user.username,
+        'email': user.email
+    })
 
 class CropViewSet(viewsets.ModelViewSet):
     queryset = Crop.objects.all()

@@ -49,34 +49,6 @@ const Login = () => {
     return true;
   };
 
-  // const handleLogin = async () => {
-  //   if (!validateForm()) return;
-
-  //   setLoading(true);
-
-  //   try {
-  //     const response = await axios.post('http://192.168.177.137:8000/api/login/', {
-  //       username,
-  //       email,
-  //       password,
-  //     });
-  //     console.log('Login success', response.data);
-  //     ToastAndroid.show("Login Successful!", ToastAndroid.SHORT);
-
-  //     router.push('/(tabs)'); // navigate to home screen  
-  //   } catch (error: any) {
-  //     ToastAndroid.show("Success! Logged In", ToastAndroid.SHORT);
-  //     console.error('Login failed:', error.response?.data || error.message);
-  //     ToastAndroid.show(
-  //       "Login Failed: " + (error?.response?.data?.detail || 'An error occurred.'),
-  //       ToastAndroid.SHORT
-  //     );
-  //     // Alert.alert('Login Failed', error.response?.data?.detail || 'An error occurred.');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleLogin = async () => {
     if (!validateForm()) return;
 
@@ -95,8 +67,8 @@ const Login = () => {
       const token = response.data.access; // Adjust this if the token key is different
 
       if (token) {
-        await AsyncStorage.setItem('jwtToken', token);
-        router.push('/(tabs)'); // Navigate to home
+        await login(token);
+        router.push('/(tabs)');
       } else {
         ToastAndroid.show("No token received.", ToastAndroid.SHORT);
       }
@@ -110,9 +82,6 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-
-      await login(token);
-      router.push('/(tabs)');
   };
 
 

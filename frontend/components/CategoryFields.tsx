@@ -278,6 +278,8 @@ import { useRouter } from 'expo-router';
 import { AuthContext } from '@/utils/AuthContext';
 import axios from 'axios';
 
+const BASE_URL = 'http://127.0.0.1:8000';
+
 const CropSelector = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -291,11 +293,9 @@ const CropSelector = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const { authToken } = useContext(AuthContext);
-
   const animationsRef = useRef([]);
   const router = useRouter();
 
-  // 🌾 Icon Matching
   const getIcon = (name: string) => {
     const key = name.toLowerCase();
     if (key.includes('grape')) return 'fruit-grapes-outline';
@@ -317,28 +317,34 @@ const CropSelector = () => {
       return;
     }
 
+    if (!authToken) {
+      ToastAndroid.show('Not authenticated', ToastAndroid.SHORT);
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://192.168.177.137:8000/api/crops/', {
+      const response = await fetch(`${BASE_URL}/api/crops/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify(newCrop),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          errorData.detail || 'Failed to submit crop. Try again.'
-        );
+        throw new Error(errorData.detail || 'Failed to submit crop. Try again.');
       }
-      ToastAndroid.show("Failed to submit crop, Try Again.",  ToastAndroid.SHORT);
 
-      const newCropObj = { ...newCrop };
-      setCrops([...crops, newCropObj]);
+      const addedCrop = await response.json();
+
+      ToastAndroid.show('Crop submitted successfully!', ToastAndroid.SHORT);
+
+      setCrops([...crops, addedCrop]);
       animationsRef.current.push(new Animated.Value(1));
       setNewCrop({ name: '', area: '', location: '' });
       setModalVisible(false);
@@ -348,21 +354,6 @@ const CropSelector = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const fetchData = async () => {
-    try {
-      const res = await axios.get('http://192.168.177.137:8000', {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-      console.log(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-    
-    return null;
   };
 
   const toggleSelection = (index: number) => {
@@ -420,15 +411,11 @@ const CropSelector = () => {
                 opacity: animationsRef.current[index],
               }}>
               <Pressable
-                style={[
-                  styles.categoryBtn,
-                  isSelected && styles.selectedBtn,
-                ]}
+                style={[styles.categoryBtn, isSelected && styles.selectedBtn]}
                 onPress={() => {
                   if (selectionMode) {
                     toggleSelection(index);
                   } else {
-                    // 👇 Navigate with crop details
                     router.push({
                       pathname: '/crop-details',
                       params: {
@@ -440,17 +427,12 @@ const CropSelector = () => {
                   }
                 }}
                 onLongPress={() => enterSelectionMode(index)}>
-                <MaterialCommunityIcons
-                  name={iconName}
-                  size={26}
-                  color="black"
-                />
+                <MaterialCommunityIcons name={iconName} size={26} color="black" />
               </Pressable>
             </Animated.View>
           );
         })}
 
-        {/* ➕ Plus or 🗑️ Delete Button */}
         <Pressable
           onPress={() => {
             if (selectionMode) {
@@ -496,26 +478,20 @@ const CropSelector = () => {
             <TextInput
               placeholder="Enter Crop / Livestock"
               value={newCrop.name}
-              onChangeText={(text) =>
-                setNewCrop({ ...newCrop, name: text })
-              }
+              onChangeText={(text) => setNewCrop({ ...newCrop, name: text })}
               style={styles.input}
             />
             <TextInput
               placeholder="Enter Area Sqmeter"
               keyboardType="numeric"
               value={newCrop.area}
-              onChangeText={(text) =>
-                setNewCrop({ ...newCrop, area: text })
-              }
+              onChangeText={(text) => setNewCrop({ ...newCrop, area: text })}
               style={styles.input}
             />
             <TextInput
               placeholder="Enter Location"
               value={newCrop.location}
-              onChangeText={(text) =>
-                setNewCrop({ ...newCrop, location: text })
-              }
+              onChangeText={(text) => setNewCrop({ ...newCrop, location: text })}
               style={styles.input}
             />
 
@@ -524,10 +500,7 @@ const CropSelector = () => {
             ) : null}
 
             <Pressable
-              style={[
-                styles.submitBtn,
-                isSubmitting && { opacity: 0.7 },
-              ]}
+              style={[styles.submitBtn, isSubmitting && { opacity: 0.7 }]}
               onPress={handleAddCrop}
               disabled={isSubmitting}>
               {isSubmitting ? (

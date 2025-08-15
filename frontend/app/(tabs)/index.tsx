@@ -34,59 +34,61 @@ const greetings = [
 
 const Index = () => {
   const [index, setIndex] = useState(0);
+  const [user, setUser] = useState(null);
+  const { authToken, loading } = useContext(AuthContext);
   const router = useRouter();
 
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prevIndex) => (prevIndex + 1) % greetings.length);
     }, 4000);
-
     return () => clearInterval(interval);
   }, []);
 
   const currentGreeting = greetings[index];
-  const { authToken, loading } = useContext(AuthContext);
 
+  // Redirect to login if token is missing
   useEffect(() => {
     if (!loading && !authToken) {
       router.replace('/(auth)/Login');
     }
   }, [authToken, loading]);
 
+  // Fetch logged-in user data
+useEffect(() => {
+  const fetchUser = async () => {
+    if (!authToken) return;
 
-  // 🔐 Get token and fetch user data
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = await AsyncStorage.getItem('jwtToken');
-        if (token) {
-          const res = await axios.get('http://192.168.177.137/api/', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          console.log('User data:', res.data);
-        } else {
-          console.warn('No token found.');
-        }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
-    };
+    try {
+      const res = await axios.get('http://192.168.177.137:8000/api/user/', {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      setUser(res.data);
+      console.log('User loaded:', res.data);
+    } catch (error) {
+      console.error('Error fetching user data:', error.response?.data || error.message);
+    }
+  };
 
-    fetchUser();
-  }, []);
+  fetchUser();
+}, [authToken]);
+
 
   return (
     <SafeAreaView style={styles.Container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.Header}>
-          <Text style={styles.GreetingText}>{currentGreeting.text}, Gavin</Text>
+          <Text style={styles.GreetingText}>
+            {currentGreeting.text}, {user?.username || user?.email}
+          </Text>
           <Image source={require('../../assets/images/mesh.jpg')} style={styles.Avatar} />
         </View>
 
         <WeatherCard />
 
+        {/* My Field Header */}
         <View style={styles.categoryHeader}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>My Field</Text>
@@ -98,6 +100,7 @@ const Index = () => {
 
         <CropSelector />
 
+        {/* Suggestions Header */}
         <View style={styles.suggestionsHeader}>
           <View style={styles.sectionHeader}>
             <FontAwesome6 name="star-of-life" size={24} color="black" />
@@ -124,7 +127,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: width * 0.04,
-    paddingBottom: 60, // Add bottom padding for scroll spacing
+    paddingBottom: 60,
   },
   Header: {
     flexDirection: 'row',
@@ -159,19 +162,5 @@ const styles = StyleSheet.create({
   },
   seeAll: {
     color: '#ccc',
-  },
-  categories: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-evenly',
-    gap: 12,
-    marginBottom: 30,
-  },
-  categoryBtn: {
-    padding: 16,
-    borderRadius: 10,
-    backgroundColor: '#f7f7f7',
-    width: (width - 60) / 4, 
-    alignItems: 'center',
   },
 });
