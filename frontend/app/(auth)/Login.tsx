@@ -9,14 +9,12 @@ import {
   TextInput,
   TouchableOpacity,
   Pressable,
-  Alert,
   ActivityIndicator,
   ToastAndroid,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '@/utils/AuthContext';
 
 const { width } = Dimensions.get('window');
@@ -139,7 +137,7 @@ const Login = () => {
 
         <View style={styles.Separator} />
 
-        <TouchableOpacity style={styles.LoginBtn} onPress={() => router.push('/(auth)/Registration')}>
+        <TouchableOpacity style={styles.LoginBtn} onPress={() => router.push('/(auth)/Forgot')}>
           <Text style={styles.BtnTitle}>Create an Account</Text>
         </TouchableOpacity>
       </View>

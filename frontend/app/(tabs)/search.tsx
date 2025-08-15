@@ -318,9 +318,11 @@
 
 import { Ionicons } from '@expo/vector-icons'
 import React from 'react'
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, Text, Dimensions } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaView } from 'react-native-safe-area-context'
+
+const width = Dimensions.get('window').width;
 
 const search = () => {
   return (
@@ -375,6 +377,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   CardContainer: {
+    padding: width * 0.04,
+  },
+  CardContent: {
     padding: 18,
     borderRadius: 10,
     backgroundColor: '#f7f7f7',
@@ -382,6 +387,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  CardContent: {},
   CardTitle: {},
 });

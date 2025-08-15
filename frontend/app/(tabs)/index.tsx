@@ -15,7 +15,6 @@ import { FontAwesome6 } from '@expo/vector-icons';
 import PlantSuggestionList from '@/components/PlantSuggestionList';
 import CropSelector from '@/components/CategoryFields';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '@/utils/AuthContext';
 import { useRouter } from 'expo-router';
 
@@ -55,25 +54,25 @@ const Index = () => {
   }, [authToken, loading]);
 
   // Fetch logged-in user data
-useEffect(() => {
-  const fetchUser = async () => {
-    if (!authToken) return;
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!authToken) return;
 
-    try {
-      const res = await axios.get('http://192.168.177.137:8000/api/user/', {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-      setUser(res.data);
-      console.log('User loaded:', res.data);
-    } catch (error) {
-      console.error('Error fetching user data:', error.response?.data || error.message);
-    }
-  };
+      try {
+        const res = await axios.get('http://192.168.177.137:8000/api/user/', {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+        setUser(res.data);
+        console.log('User loaded:', res.data);
+      } catch (error) {
+        console.error('Error fetching user data:', error.response?.data || error.message);
+      }
+    };
 
-  fetchUser();
-}, [authToken]);
+    fetchUser();
+  }, [authToken]);
 
 
   return (
