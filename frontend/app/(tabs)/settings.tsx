@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Switch, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { clearToken } from '@/utils/tokenStorage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -15,6 +16,12 @@ const Settings = () => {
   const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
   const toggleNotifications = () => setIsNotificationsEnabled(prev => !prev);
   const toggleDarkMode = () => setIsDarkModeEnabled(prev => !prev);
+
+  const handleLogout = async () => {
+    await clearToken();
+    // Redirect to login screen
+    router.push('/(auth)/Login');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -105,7 +112,7 @@ const Settings = () => {
             <Ionicons name="chevron-forward" size={20} color="#ccc" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingsItem}>
-            <Text style={[styles.settingsText, { color: 'red' }]}>Logout</Text>
+            <Text style={[styles.settingsText, { color: 'red' }]} onPress={handleLogout}>Logout</Text>
             <Ionicons name="log-out-outline" size={20} color="red" />
           </TouchableOpacity>
         </View>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,15 +6,18 @@ import {
   Dimensions,
   Image,
   TouchableOpacity,
-  Pressable,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import WeatherCard from '@/components/WeatherCard';
-import { Entypo, FontAwesome6, MaterialCommunityIcons } from '@expo/vector-icons';
+import { FontAwesome6 } from '@expo/vector-icons';
 import PlantSuggestionList from '@/components/PlantSuggestionList';
 import CropSelector from '@/components/CategoryFields';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthContext } from '@/utils/AuthContext';
+import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -31,16 +34,48 @@ const greetings = [
 
 const Index = () => {
   const [index, setIndex] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prevIndex) => (prevIndex + 1) % greetings.length);
-    }, 4000); // every 4 seconds
+    }, 4000);
 
     return () => clearInterval(interval);
   }, []);
 
   const currentGreeting = greetings[index];
+  const { authToken, loading } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (!loading && !authToken) {
+      router.replace('/(auth)/Login');
+    }
+  }, [authToken, loading]);
+
+
+  // 🔐 Get token and fetch user data
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = await AsyncStorage.getItem('jwtToken');
+        if (token) {
+          const res = await axios.get('http://192.168.177.137/api/', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          console.log('User data:', res.data);
+        } else {
+          console.warn('No token found.');
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   return (
     <SafeAreaView style={styles.Container}>
@@ -52,7 +87,6 @@ const Index = () => {
 
         <WeatherCard />
 
-        {/* My Field Header */}
         <View style={styles.categoryHeader}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>My Field</Text>
@@ -64,7 +98,6 @@ const Index = () => {
 
         <CropSelector />
 
-        {/* Suggestions Header */}
         <View style={styles.suggestionsHeader}>
           <View style={styles.sectionHeader}>
             <FontAwesome6 name="star-of-life" size={24} color="black" />
@@ -77,7 +110,7 @@ const Index = () => {
 
         <PlantSuggestionList />
       </ScrollView>
-      <StatusBar style='dark' />
+      <StatusBar style="dark" />
     </SafeAreaView>
   );
 };

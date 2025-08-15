@@ -255,7 +255,7 @@
 //   },
 // });
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import {
   View,
   Text,
@@ -275,6 +275,8 @@ import {
   Feather,
 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { AuthContext } from '@/utils/AuthContext';
+import axios from 'axios';
 
 const CropSelector = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -288,6 +290,7 @@ const CropSelector = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const { authToken } = useContext(AuthContext);
 
   const animationsRef = useRef([]);
   const router = useRouter();
@@ -318,7 +321,7 @@ const CropSelector = () => {
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://192.168.138.137:8000/api/crops/', {
+      const response = await fetch('http://192.168.177.137:8000/api/crops/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -345,6 +348,21 @@ const CropSelector = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const fetchData = async () => {
+    try {
+      const res = await axios.get('http://192.168.177.137:8000', {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      console.log(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+    
+    return null;
   };
 
   const toggleSelection = (index: number) => {
