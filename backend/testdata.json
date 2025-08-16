@@ -1,0 +1,17 @@
+[
+    {
+        "name": "Cow",
+        "category": "Bonsmar",
+        "weight": "125",
+        "condition": "Healthy"
+    },
+    {
+        "user": 1,
+        "name": "Cow",
+        "category": "Bonsmar",
+        "weight": 125,
+        "condition": "Healthy",
+        "quantity": 12,
+        "planted_at": "2025-08-16"
+    }
+]
