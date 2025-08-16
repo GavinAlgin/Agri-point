@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest
+from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock
 from rest_framework.serializers import ModelSerializer
 from django.contrib.auth.models import User
 
@@ -39,5 +39,12 @@ class EquipmentSerializer(serializers.ModelSerializer):
 class FarmingAdviceRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FarmingAdviceRequest
+        fields = '__all__'
+        read_only_fields = ['user']
+
+
+class LivestockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Livestock
         fields = '__all__'
         read_only_fields = ['user']

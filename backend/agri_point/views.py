@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest
-from .serializers import PostSerializer, CropSerializer, UserSerializer, ProductSerializer, EquipmentSerializer, FarmingAdviceRequestSerializer
+from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock
+from .serializers import PostSerializer, CropSerializer, UserSerializer, ProductSerializer, EquipmentSerializer, FarmingAdviceRequestSerializer, LivestockSerializer
 from django.contrib.auth.models import User
 from rest_framework import generics, permissions
 from rest_framework.response import Response
@@ -61,6 +61,15 @@ class EquipmentViewSet(viewsets.ModelViewSet):
 class FarmingAdviceRequestViewSet(viewsets.ModelViewSet):
     queryset = FarmingAdviceRequest.objects.all()
     serializer_class = FarmingAdviceRequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class LivestockViewSet(viewsets.ModelViewSet):
+    queryset = Livestock.objects.all()
+    serializer_class = LivestockSerializer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
