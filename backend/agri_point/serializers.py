@@ -12,8 +12,8 @@ class PostSerializer(serializers.ModelSerializer):
 class CropSerializer(serializers.ModelSerializer):
     class Meta:
         model = Crop
-        fields = '__all__'
-        read_only_fields = ['user']
+        fields = ['id', 'user', 'name', 'quantity', 'planted_at', 'image', 'ai_advice']
+        read_only_fields = ['user', 'ai_advice']
 
 
 class UserSerializer(ModelSerializer):

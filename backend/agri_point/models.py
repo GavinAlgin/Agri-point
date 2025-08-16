@@ -18,6 +18,7 @@ class Crop(models.Model):
     name = models.CharField(max_length=255)
     quantity = models.IntegerField()
     image = models.ImageField(upload_to='crop_images/', blank=True, null=True)
+    ai_advice = models.TextField(blank=True, null=True)
     planted_at = models.DateField()
 
     def __str__(self):

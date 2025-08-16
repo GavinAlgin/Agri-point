@@ -1,3 +1,4 @@
+import random
 from django.shortcuts import render
 from rest_framework import viewsets
 from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock
@@ -7,7 +8,7 @@ from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
@@ -38,6 +39,24 @@ class CropViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        crop = Crop.objects.all()
+
+        # Simulate AI call which we can replace with AI/ML model later
+        advice = self.get_ai_advice(crop.name, crop.quantity)
+        crop.ai_advice = advice
+        crop.save()
+
+    def get_ai_advice(self, crop_name, quantity):
+        # E.g., Dummy AI logic
+        tips = [
+            f"For {crop_name}, ensure proper irrigation to boost yields.",
+            f"Monitor {crop_name} for pests weekly.",
+            f"Add organic fertilizer to improve {crop_name} growth.",
+            f"Planting density for {crop_name} should match soil fertility."
+        ]
+        return random.choice(tips)
 
 
 class ProductViewSet(viewsets.ModelViewSet):
