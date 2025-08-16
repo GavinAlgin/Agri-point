@@ -44,3 +44,12 @@ class Equipment(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class FarmingAdviceRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="farming_advice_request")
+    crop_type = models.CharField(max_length=100, blank=True, null=True)
+    livestock_type = models.CharField(max_length=100, blank=True, null=True)
+    location = models.CharField(max_length=255)
+    problem_description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
