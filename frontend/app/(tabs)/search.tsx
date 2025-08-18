@@ -1,333 +1,157 @@
-// import React, { useCallback, useRef, useState } from 'react';
-// import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList, ActivityIndicator, ScrollView } from 'react-native';
-// import { Ionicons } from '@expo/vector-icons';
-// import { launchImageLibraryAsync, MediaTypeOptions } from 'expo-image-picker';
-// import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet'; 
-// import { SafeAreaView } from 'react-native-safe-area-context';
-// import { GestureHandlerRootView } from 'react-native-gesture-handler';
-
-// const { width, height } = Dimensions.get('window');
-
-// type CropOrLivestockData = {
-//   image: string | null;
-//   name: string;
-//   type: string;
-//   price: string;
-//   description: string;
-// };
-
-// type EquipmentOrEmployeeData = {
-//   name: string;
-//   roleOrType: string;
-//   details: string;
-// };
-
-// const FarmManagement = () => {
-//   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
-//   const [isOpen, setIsOpen] = useState(true);
-//   const [selectedTab, setSelectedTab] = useState('crops'); // 'crops', 'equipment', or 'employees'
-//   const [formData, setFormData] = useState<CropOrLivestockData | EquipmentOrEmployeeData>({
-//     image: null,
-//     name: '',
-//     type: '',
-//     price: '',
-//     description: '',
-//   });
-//   const [loading, setLoading] = useState(false); // Loading state
-//   const [items, setItems] = useState<CropOrLivestockData[]>([]); // For crops and livestock
-//   const [equipment, setEquipment] = useState<EquipmentOrEmployeeData[]>([]); // For equipment and employees
-//   const [employees, setEmployees] = useState<EquipmentOrEmployeeData[]>([]); // For employees
-
-//   const toggleBottomSheet = () => setBottomSheetVisible(!bottomSheetVisible);
-
-//   const sheetRef = useRef<BottomSheet>(null);
-//   const snapPoints = ["10%", "50%", "60%"];
-
-//   const handleSnapPress = useCallback((index) => {
-//     sheetRef.current?.snapToIndex(index);
-//     setIsOpen(true);
-//   }, []);
-
-//   // Handle image selection for crops/livestock
-//   const handleImagePick = async () => {
-//     const result = await launchImageLibraryAsync({
-//       mediaTypes: MediaTypeOptions.Images,
-//       allowsEditing: true,
-//       quality: 1,
-//     });
-//     if (!result.canceled && result.assets?.length > 0) {
-//       setFormData({ ...formData, image: result.assets[0].uri });
-//     }
-//   };
-
-//   // Handle input changes
-//   const handleInputChange = (name: string, value: string) => {
-//     setFormData({ ...formData, [name]: value });
-//   };
-
-//   // Save Data
-//   const handleSave = () => {
-//     setLoading(true); // Start loading
-//     setTimeout(() => {
-//       if (selectedTab === 'crops') {
-//         setItems((prevItems) => [...prevItems, formData as CropOrLivestockData]);
-//       } else if (selectedTab === 'equipment') {
-//         setEquipment((prev) => [...prev, formData as EquipmentOrEmployeeData]);
-//       } else if (selectedTab === 'employees') {
-//         setEmployees((prev) => [...prev, formData as EquipmentOrEmployeeData]);
-//       }
-//       setFormData({ image: null, name: '', type: '', price: '', description: '' });
-//       setLoading(false); // Stop loading
-//       toggleBottomSheet(); // Close the bottom sheet
-//     }, 1000); // Simulate async save operation
-//   };
-
-//   // Render different item views
-//   const renderItem = (item: CropOrLivestockData | EquipmentOrEmployeeData) => {
-//     return (
-//       <View style={styles.card}>
-//         {item.image && <Image source={{ uri: item.image }} style={styles.cardImage} />}
-//         <Text style={styles.cardTitle}>{item.name}</Text>
-//         <Text style={styles.cardType}>{item.type}</Text>
-//         <Text style={styles.cardPrice}>${item.price}</Text>
-//         <Text style={styles.cardDescription}>{item.description}</Text>
-//       </View>
-//     );
-//   };
-
-//   return (
-//     <SafeAreaView style={[styles.container, { backgroundColor: isOpen ? '#00000090' : '#fff' }]}>
-//       <GestureHandlerRootView>
-//       {/* Header */}
-//       <View style={styles.headerContainer}>
-//         <Text style={styles.headerText}>Farm Management</Text>
-//         <TouchableOpacity onPress={toggleBottomSheet} style={styles.dropdownButton}>
-//           <Ionicons name="ellipsis-vertical" size={20} color="black" />
-//         </TouchableOpacity>
-//       </View>
-
-//       {/* Sliding Tabs */}
-//       <View style={styles.tabContainer}>
-//         <TouchableOpacity onPress={() => setSelectedTab('crops')} style={styles.tabButton}>
-//           <Text style={styles.tabText}>Crops/Livestock</Text>
-//         </TouchableOpacity>
-//         <TouchableOpacity onPress={() => setSelectedTab('equipment')} style={styles.tabButton}>
-//           <Text style={styles.tabText}>Equipment</Text>
-//         </TouchableOpacity>
-//         <TouchableOpacity onPress={() => setSelectedTab('employees')} style={styles.tabButton}>
-//           <Text style={styles.tabText}>Employees</Text>
-//         </TouchableOpacity>
-//       </View>
-
-//       {/* FlatList to display items based on selected tab */}
-//       <ScrollView contentContainerStyle={styles.flatlistContainer}>
-//         {selectedTab === 'crops' && items.map(renderItem)}
-//         {selectedTab === 'equipment' && equipment.map(renderItem)}
-//         {selectedTab === 'employees' && employees.map(renderItem)}
-//       </ScrollView>
-
-//       {/* Add Item Button */}
-//       <TouchableOpacity onPress={() => handleSnapPress(0)} style={styles.addButton}>
-//         <Text style={styles.addButtonText}>+ Add {selectedTab === 'crops' ? 'Crop/Livestock' : selectedTab === 'equipment' ? 'Equipment' : 'Employee'}</Text>
-//       </TouchableOpacity>
-
-//       {/* Bottom Sheet for Adding Items */}
-//       <BottomSheet ref={sheetRef} snapPoints={snapPoints} enablePanDownToClose={true} onClose={() => setIsOpen(false)}>
-//         <BottomSheetView style={styles.modalContent}>
-//           <Text style={styles.modalTitle}>Add {selectedTab === 'crops' ? 'Crop/Livestock' : selectedTab === 'equipment' ? 'Equipment' : 'Employee'}</Text>
-
-//           {/* Image Picker for Crops */}
-//           {selectedTab === 'crops' && (
-//             <TouchableOpacity onPress={handleImagePick} style={styles.imagePicker}>
-//               {formData.image ? (
-//                 <Image source={{ uri: formData.image }} style={styles.imagePreview} />
-//               ) : (
-//                 <Text style={styles.imagePickerText}>Pick Image</Text>
-//               )}
-//             </TouchableOpacity>
-//           )}
-
-//           {/* Inputs for Adding Data */}
-//           <TextInput
-//             style={styles.input}
-//             placeholder="Name"
-//             value={formData.name}
-//             onChangeText={(text) => handleInputChange('name', text)}
-//           />
-//           <TextInput
-//             style={styles.input}
-//             placeholder="Type/Role"
-//             value={formData.type}
-//             onChangeText={(text) => handleInputChange('type', text)}
-//           />
-//           <TextInput
-//             style={styles.input}
-//             placeholder="Price/Details"
-//             value={formData.price}
-//             onChangeText={(text) => handleInputChange('price', text)}
-//           />
-//           <TextInput
-//             style={styles.input}
-//             placeholder="Description"
-//             value={formData.description}
-//             onChangeText={(text) => handleInputChange('description', text)}
-//           />
-
-//           {/* Save Button */}
-//           <TouchableOpacity onPress={handleSave} style={styles.saveButton} disabled={loading}>
-//             {loading ? (
-//               <ActivityIndicator size="small" color="#fff" />
-//             ) : (
-//               <Text style={styles.saveButtonText}>Save</Text>
-//             )}
-//           </TouchableOpacity>
-//         </BottomSheetView>
-//       </BottomSheet>
-//       </GestureHandlerRootView>
-//     </SafeAreaView>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#fff',
-//   },
-//   headerContainer: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     paddingVertical: 16,
-//     paddingHorizontal: 16,
-//   },
-//   headerText: {
-//     fontSize: 28,
-//     fontWeight: 'bold',
-//   },
-//   dropdownButton: {
-//     padding: 10,
-//     borderRadius: 8,
-//     backgroundColor: '#f0f0f0',
-//   },
-//   tabContainer: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-evenly',
-//     paddingVertical: 10,
-//     backgroundColor: '#f7f7f7',
-//   },
-//   tabButton: {
-//     padding: 10,
-//   },
-//   tabText: {
-//     fontSize: 16,
-//     fontWeight: 'bold',
-//     color: '#333',
-//   },
-//   flatlistContainer: {
-//     paddingBottom: 80, // Ensure space for the button
-//   },
-//   addButton: {
-//     position: 'absolute',
-//     bottom: 20,
-//     left: width * 0.25,
-//     width: width * 0.5,
-//     padding: 15,
-//     backgroundColor: '#4caf50',
-//     borderRadius: 10,
-//   },
-//   addButtonText: {
-//     textAlign: 'center',
-//     color: '#fff',
-//     fontSize: 18,
-//   },
-//   modalContent: {
-//     padding: 20,
-//     backgroundColor: '#fff',
-//     borderRadius: 10,
-//   },
-//   modalTitle: {
-//     fontSize: 22,
-//     fontWeight: 'bold',
-//     marginBottom: 20,
-//   },
-//   imagePicker: {
-//     padding: 20,
-//     backgroundColor: '#f0f0f0',
-//     borderRadius: 10,
-//     marginBottom: 15,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   imagePreview: {
-//     width: 100,
-//     height: 100,
-//     borderRadius: 10,
-//   },
-//   input: {
-//     height: 45,
-//     borderColor: '#ccc',
-//     borderWidth: 1,
-//     borderRadius: 10,
-//     marginBottom: 15,
-//     paddingHorizontal: 10,
-//     fontSize: 16,
-//   },
-//   saveButton: {
-//     paddingVertical: 12,
-//     backgroundColor: '#103713',
-//     borderRadius: 10,
-//     alignItems: 'center',
-//   },
-//   saveButtonText: {
-//     color: '#fff',
-//     fontSize: 18,
-//   },
-//   card: {
-//     backgroundColor: '#fff',
-//     padding: 16,
-//     borderRadius: 10,
-//     margin: 10,
-//   },
-//   cardImage: {
-//     width: '100%',
-//     height: 150,
-//     borderRadius: 8,
-//     marginBottom: 10,
-//   },
-//   cardTitle: {
-//     fontSize: 18,
-//     fontWeight: 'bold',
-//   },
-//   cardType: {
-//     fontSize: 14,
-//     color: '#555',
-//   },
-//   cardPrice: {
-//     fontSize: 16,
-//     color: '#103713',
-//     marginTop: 5,
-//   },
-//   cardDescription: {
-//     fontSize: 14,
-//     color: '#555',
-//     marginTop: 5,
-//   },
-// });
-
-// export default FarmManagement;
-
-
-import { Ionicons } from '@expo/vector-icons'
-import React from 'react'
-import { View, StyleSheet, TouchableOpacity, Text, Dimensions } from 'react-native'
-import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import React, { useRef, useState, useCallback } from 'react';
+import { 
+  View, Text, StyleSheet, TouchableOpacity, Dimensions, 
+  FlatList, Image, TextInput 
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
 
 const width = Dimensions.get('window').width;
+const defaultImage = require('@/assets/images/mesh.jpg');
 
-const search = () => {
+// ----- Initial Data -----
+const initialCrops = [
+  { id: '1', name: 'Tomatoes', category: '12.000 arces | ', icon: defaultImage, interest: 'Raw' },
+  { id: '2', name: 'Corn', category: '6.000 arces', icon: defaultImage, interest: 'Processing' },
+];
+const initialLivestock = [
+  { id: '3', name: 'Cattle Farm', category: 'Dairy and Meat', icon: defaultImage, weight: '200kg', condition: 'Healthy' },
+  { id: '4', name: 'Chicken Coop', category: 'Eggs & Poultry', icon: defaultImage, weight: '2kg', condition: 'Good' },
+];
+const initialEquipment = [
+  { id: '5', name: 'Tractor', category: 'Machinery', icon: defaultImage, operatingTime: '5h', status: 'Started' },
+];
+
+// ----- Component -----
+const FarmManagement = () => {
+  const router = useRouter();
+  const sheetRef = useRef<BottomSheet>(null);
+  const snapPoints = ['50%', '75%'];
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Tab handling
+  const [index, setIndex] = useState(0);
+  const routes = [
+    { key: 'crops', title: 'Crops' },
+    { key: 'livestock', title: 'Livestock' },
+    { key: 'equipment', title: 'Equipment' },
+  ];
+
+  // State for each list
+  const [crops, setCrops] = useState(initialCrops);
+  const [livestock, setLivestock] = useState(initialLivestock);
+  const [equipment, setEquipment] = useState(initialEquipment);
+
+  // Form state
+  const [form, setForm] = useState({
+    name: '',
+    category: '',
+    interest: '',
+    icon: null as string | null,
+    weight: '',
+    condition: '',
+    operatingTime: '',
+    status: 'Not Started',
+  });
+
+  const openSheet = useCallback(() => {
+    sheetRef.current?.snapToIndex(0);
+    setIsOpen(true);
+  }, []);
+
+  // Pick image
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      setForm({ ...form, icon: result.assets[0].uri });
+    }
+  };
+
+  // Handle submit
+  const handleSubmit = () => {
+    if (!form.name || !form.category) {
+      alert('Name and Category are required!');
+      return;
+    }
+
+    const newItem = {
+      id: Date.now().toString(),
+      name: form.name,
+      category: form.category,
+      interest: form.interest,
+      icon: form.icon ? { uri: form.icon } : defaultImage,
+      weight: form.weight,
+      condition: form.condition,
+      operatingTime: form.operatingTime,
+      status: form.status,
+    };
+
+    if (index === 0) setCrops([...crops, newItem]);
+    if (index === 1) setLivestock([...livestock, newItem]);
+    if (index === 2) setEquipment([...equipment, newItem]);
+
+    setForm({ 
+      name: '', category: '', interest: '', icon: null, 
+      weight: '', condition: '', operatingTime: '', status: 'Not Started'
+    });
+    sheetRef.current?.close();
+    setIsOpen(false);
+  };
+
+  // FlatList renderer
+  const renderList = (data: any[], type: string) => (
+    <FlatList
+      data={data}
+      keyExtractor={(item) => item.id}
+      contentContainerStyle={styles.list}
+      renderItem={({ item }) => (
+        <TouchableOpacity onPress={() => router.push('/(screens)/VendorDetailScreen')}>
+          <View style={styles.card}>
+            <Image source={item.icon} style={styles.icon} />
+            <View style={styles.info}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.category}>{item.category}</Text>
+
+              {/* Dynamic fields */}
+              {type === 'crops' && item.interest ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{item.interest}</Text>
+                </View>
+              ) : null}
+
+              {type === 'livestock' && (
+                <View>
+                  <Text style={styles.extraText}>Weight: {item.weight || '-'}</Text>
+                  <Text style={styles.extraText}>Condition: {item.condition || '-'}</Text>
+                </View>
+              )}
+
+              {type === 'equipment' && (
+                <View>
+                  <Text style={styles.extraText}>Operating Time: {item.operatingTime || '-'}</Text>
+                  <Text style={styles.extraText}>Status: {item.status || '-'}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
+      )}
+    />
+  );
+
   return (
     <SafeAreaView style={styles.container}>
-      <GestureHandlerRootView>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        
+        {/* Header */}
         <View style={styles.headerContainer}>
           <Text style={styles.headerText}>Farm Management</Text>
           <TouchableOpacity style={styles.dropdownButton}>
@@ -335,57 +159,201 @@ const search = () => {
           </TouchableOpacity>
         </View>
 
+        {/* Stats */}
         <View style={styles.CardContainer}>
-          <View style={styles.CardContent}>
-            <Text style={styles.CardTitle}>12</Text>
-            <Text>Crops / LiveStock</Text>
-          </View>
-          <View style={styles.CardContent}>
-            <Text style={styles.CardTitle}>2</Text>
-            <Text>Employess</Text>
-          </View>
-          <View style={styles.CardContent}>
-            <Text style={styles.CardTitle}>8</Text>
-            <Text>Equipment</Text>
+          <View style={styles.CardList}>
+            <View style={styles.CardContent}>
+              <Text style={styles.CardTitle}>
+                {crops.length + livestock.length + equipment.length}
+              </Text>
+              <Text>Total Items</Text>
+            </View>
+            <View style={styles.CardContent}>
+              <Text style={styles.CardTitle}>{livestock.length}</Text>
+              <Text>Livestock</Text>
+            </View>
+            <View style={styles.CardContent}>
+              <Text style={styles.CardTitle}>{equipment.length}</Text>
+              <Text>Equipment</Text>
+            </View>
           </View>
         </View>
+
+        {/* Tabs */}
+        <View style={styles.tabContainer}>
+          {routes.map((route, idx) => (
+            <TouchableOpacity
+              key={route.key}
+              style={[styles.tabButton, index === idx && styles.activeTab]}
+              onPress={() => setIndex(idx)}
+            >
+              <Text style={[styles.tabText, index === idx && styles.activeTabText]}>
+                {route.title}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Lists */}
+        {index === 0 && renderList(crops, 'crops')}
+        {index === 1 && renderList(livestock, 'livestock')}
+        {index === 2 && renderList(equipment, 'equipment')}
+
+        {/* Add Button */}
+        <View style={styles.BtnContainer}>
+          <TouchableOpacity style={styles.addCrop} onPress={openSheet}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#fff' }}>Add to Farm</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Overlay */}
+        {isOpen && <View style={styles.overlay} />}
+
+        {/* Bottom Sheet Form */}
+        <BottomSheet
+          ref={sheetRef}
+          snapPoints={snapPoints}
+          enablePanDownToClose={true}
+          onClose={() => setIsOpen(false)}>
+          <BottomSheetView style={styles.BottomSheetContent}>
+            <Text style={styles.sheetTitle}>Add New {routes[index].title}</Text>
+
+            <TouchableOpacity onPress={pickImage}>
+              <Image 
+                source={form.icon ? { uri: form.icon } : defaultImage} 
+                style={styles.uploadPreview} 
+              />
+              <View style={{ padding: 10, borderRadius: 10, backgroundColor: '#ddd', alignItems: 'center', marginBottom: 12, }}>
+                <Text style={styles.uploadText}>Upload Image</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Common Fields */}
+            <TextInput
+              style={styles.input}
+              placeholder="Name"
+              value={form.name}
+              onChangeText={(text) => setForm({ ...form, name: text })}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Category"
+              value={form.category}
+              onChangeText={(text) => setForm({ ...form, category: text })}
+            />
+
+            {/* Conditional fields */}
+            {index === 0 && (
+              <TextInput
+                style={styles.input}
+                placeholder="Interest (optional)"
+                value={form.interest}
+                onChangeText={(text) => setForm({ ...form, interest: text })}
+              />
+            )}
+
+            {index === 1 && (
+              <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Weight (e.g., 120kg)"
+                  value={form.weight}
+                  onChangeText={(text) => setForm({ ...form, weight: text })}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Condition (e.g., Healthy)"
+                  value={form.condition}
+                  onChangeText={(text) => setForm({ ...form, condition: text })}
+                />
+              </>
+            )}
+
+            {index === 2 && (
+              <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Operating Time (e.g., 3h)"
+                  value={form.operatingTime}
+                  onChangeText={(text) => setForm({ ...form, operatingTime: text })}
+                />
+                <View style={styles.statusRow}>
+                  <Text style={{ fontWeight: '600', marginBottom: 6 }}>Status:</Text>
+                  {['Started', 'Not Started'].map((opt) => (
+                    <TouchableOpacity
+                      key={opt}
+                      style={[
+                        styles.statusOption,
+                        form.status === opt && styles.activeStatus,
+                      ]}
+                      onPress={() => setForm({ ...form, status: opt })}
+                    >
+                      <Text style={[
+                        styles.statusText, 
+                        form.status === opt && styles.activeStatusText
+                      ]}>
+                        {opt}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+
+            {/* Submit pinned bottom */}
+            <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+              <Text style={styles.submitText}>Submit</Text>
+            </TouchableOpacity>
+          </BottomSheetView>
+        </BottomSheet>
       </GestureHandlerRootView>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default search
+export default FarmManagement;
 
+// ----- Styles -----
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-  },
-  headerText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  dropdownButton: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: '#f0f0f0',
-  },
-  CardContainer: {
-    padding: width * 0.04,
-  },
-  CardContent: {
-    padding: 18,
-    borderRadius: 10,
-    backgroundColor: '#f7f7f7',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  CardTitle: {},
+  container: { flex: 1, backgroundColor: '#fff' },
+  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', padding: 16 },
+  headerText: { fontSize: 28, fontWeight: 'bold' },
+  dropdownButton: { padding: 10, borderRadius: 8, backgroundColor: '#f0f0f0' },
+  CardContainer: { padding: width * 0.04 },
+  CardList: { padding: 16, borderRadius: 10, backgroundColor: '#f7f7f7', flexDirection: 'row', justifyContent: 'space-between' },
+  CardContent: { padding: 12 },
+  CardTitle: { fontSize: 20, fontWeight: 'bold' },
+  list: { padding: 16 },
+  card: { flexDirection: 'row', padding: 16, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#eee', marginBottom: 12 },
+  icon: { width: 84, height: 84, marginRight: 12, borderRadius: 8 },
+  info: { flex: 1 },
+  name: { fontSize: 18, fontWeight: '600' },
+  category: { fontSize: 14, color: '#555', marginTop: 4 },
+  badge: { backgroundColor: '#103713', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, marginTop: 6, alignSelf: 'flex-start' },
+  badgeText: { fontSize: 12, color: '#fff', fontWeight: '600' },
+  extraText: { fontSize: 14, color: '#333', marginTop: 4 },
+  addCrop: { padding: width * 0.04, backgroundColor: '#103713', borderRadius: 10, alignItems: 'center' },
+  BtnContainer: { padding: width * 0.04 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
+  tabContainer: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 12, borderRadius: 8, backgroundColor: '#f2f2f2', overflow: 'hidden' },
+  tabButton: { flex: 1, paddingVertical: 10, alignItems: 'center' },
+  activeTab: { backgroundColor: '#103713' },
+  tabText: { fontSize: 16, color: '#333' },
+  activeTabText: { color: '#fff', fontWeight: '600' },
+
+  // Bottom Sheet
+  BottomSheetContent: { flex: 1, padding: 16, justifyContent: 'flex-start' },
+  sheetTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
+  uploadPreview: { width: 100, height: 100, borderRadius: 10, marginBottom: 8 },
+  uploadText: { color: 'black', fontWeight: 'bold', },
+  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 10, marginBottom: 12 },
+  submitBtn: { backgroundColor: '#103713', padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 'auto' },
+  submitText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+
+  // Status buttons
+  statusRow: { flexDirection: 'row', marginVertical: 8, gap: 8, alignItems: 'center' },
+  statusOption: { paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: '#ddd', borderRadius: 8 },
+  activeStatus: { backgroundColor: '#103713', borderColor: '#103713' },
+  statusText: { fontSize: 14, color: '#333' },
+  activeStatusText: { color: '#fff', fontWeight: '600' },
 });

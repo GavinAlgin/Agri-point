@@ -1,5 +1,8 @@
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import React, { useState, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,40 +10,88 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
-  Modal,
+  ScrollView,
+  Image,
+  Pressable,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
-const Recognition = ({ navigation }) => {
+const Recognition = () => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [fabExpanded, setFabExpanded] = useState(false);
-  const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
-  const animation = useRef(new Animated.Value(0)).current;
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [overlayVisible, setOverlayVisible] = useState(false);
 
-  const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
+  const animation = useRef(new Animated.Value(0)).current;
+  const router = useRouter();
+  const bottomSheetRef = useRef(null);
+  const snapPoints = useMemo(() => ['25%', '45%'], []);
+
+  const toggleDropdown = () => setDropdownVisible((prev) => !prev);
+
+  const fetchAIContent = async (uri) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(`AI analyzed: ${uri.split('/').pop()}`);
+      }, 1500);
+    });
+  };
+
+  const pickImage = async () => {
+    closeSheet();
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets?.length > 0) {
+      const uri = result.assets[0].uri;
+      setLoading(true);
+
+      const aiContent = await fetchAIContent(uri);
+      setLoading(false);
+
+      setHistory((prev) => [
+        {
+          id: Date.now(),
+          image: uri,
+          content: aiContent,
+        },
+        ...prev,
+      ]);
+
+      // ✅ Fixed navigation with query
+      router.push({
+        pathname: '/(screens)/ImgGenAIScreen',
+        query: {
+          image: uri,
+          content: aiContent,
+        },
+      });
+    }
+  };
+
+  const openSheet = () => {
+    bottomSheetRef.current?.expand();
+    setOverlayVisible(true);
+  };
+
+  const closeSheet = () => {
+    bottomSheetRef.current?.close();
+    setOverlayVisible(false);
+  };
 
   const toggleFab = () => {
-    const toValue = fabExpanded ? 0 : 1;
-
     Animated.timing(animation, {
-      toValue,
+      toValue: fabExpanded ? 0 : 1,
       duration: 250,
       useNativeDriver: true,
     }).start();
-
-    setFabExpanded(!fabExpanded);
-  };
-
-  const handleUploadPress = () => {
-    setBottomSheetVisible(true);
-    toggleFab();
-  };
-
-  const handleScanPress = () => {
-    toggleFab();
-    navigation.navigate('CameraScreen'); // Ensure this screen exists
+    setFabExpanded((prev) => !prev);
   };
 
   const uploadTranslate = animation.interpolate({
@@ -55,97 +106,114 @@ const Recognition = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Detection</Text>
-
-        {/* Dropdown Button */}
-        <View style={{ position: 'relative' }}>
-          <TouchableOpacity
-            onPress={toggleDropdown}
-            style={{
-              marginRight: 12,
-              padding: 12,
-              borderRadius: 10,
-              backgroundColor: '#f7f7f7',
-            }}>
-            <Ionicons name="ellipsis-vertical" size={20} color="black" />
-          </TouchableOpacity>
-
-          {dropdownVisible && (
-            <View style={styles.dropdown}>
-              <TouchableOpacity style={styles.dropdownItem}>
-                <Text>Share</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.dropdownItem}>
-                <Text>Report</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      </View>
-
-      {/* Floating Action Buttons */}
-      <View style={styles.fabContainer}>
-        {/* Upload Button */}
-        <Animated.View
-          style={[
-            styles.actionButton,
-            {
-              transform: [{ translateY: uploadTranslate }],
-              opacity: animation,
-            },
-          ]}>
-          <TouchableOpacity onPress={handleUploadPress} style={styles.subButton}>
-            <Ionicons name="cloud-upload-outline" size={24} color="white" />
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* Scan Button */}
-        <Animated.View
-          style={[
-            styles.actionButton,
-            {
-              transform: [{ translateY: scanTranslate }],
-              opacity: animation,
-            },
-          ]}>
-          <TouchableOpacity onPress={handleScanPress} style={styles.subButton}>
-            <Ionicons name="camera-outline" size={24} color="white" />
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* Main FAB */}
-        <TouchableOpacity onPress={toggleFab} style={styles.mainFab}>
-          <Ionicons name={fabExpanded ? 'close' : 'add'} size={28} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      {/* BottomSheet Modal */}
-      <Modal
-        visible={bottomSheetVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setBottomSheetVisible(false)}>
-        <View style={styles.bottomSheetBackdrop}>
-          <View style={styles.bottomSheet}>
-            <Text style={styles.sheetTitle}>Upload Image</Text>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        {/* Header */}
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerText}>Detection</Text>
+          <View style={{ position: 'relative' }}>
             <TouchableOpacity
-              style={styles.sheetOption}
-              onPress={() => {
-                // Handle actual image picker here
-                setBottomSheetVisible(false);
-              }}>
-              <Text>Select from Gallery</Text>
+              onPress={toggleDropdown}
+              style={styles.iconButton}>
+              <Ionicons name="ellipsis-vertical" size={20} color="black" />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.sheetOption}
-              onPress={() => setBottomSheetVisible(false)}>
-              <Text style={{ color: 'red' }}>Cancel</Text>
-            </TouchableOpacity>
+
+            {dropdownVisible && (
+              <View style={styles.dropdown}>
+                <TouchableOpacity style={styles.dropdownItem}>
+                  <Text>Share</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.dropdownItem}>
+                  <Text>Report</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
-      </Modal>
+
+        {/* AI History */}
+        <ScrollView style={{ flex: 1, paddingHorizontal: 16 }}>
+          {history.length === 0 ? (
+            <Text style={styles.noHistoryText}>No AI responses yet.</Text>
+          ) : (
+            history.map((item) => (
+              <View key={item.id} style={styles.historyItem}>
+                <Image
+                  source={{ uri: item.image }}
+                  style={styles.historyImage}
+                />
+                <Text style={styles.historyText}>{item.content}</Text>
+              </View>
+            ))
+          )}
+        </ScrollView>
+
+        {/* FAB */}
+        <View style={styles.fabContainer}>
+          <Animated.View
+            style={[
+              styles.actionButton,
+              {
+                transform: [{ translateY: uploadTranslate }],
+                opacity: animation,
+              },
+            ]}>
+            <TouchableOpacity onPress={openSheet} style={styles.subButton}>
+              <Ionicons name="cloud-upload-outline" size={24} color="white" />
+            </TouchableOpacity>
+          </Animated.View>
+
+          <Animated.View
+            style={[
+              styles.actionButton,
+              {
+                transform: [{ translateY: scanTranslate }],
+                opacity: animation,
+              },
+            ]}>
+            <TouchableOpacity
+              onPress={() => {
+                toggleFab();
+                router.push('/(screens)/CameraScreen');
+              }}
+              style={styles.subButton}>
+              <Ionicons name="camera-outline" size={24} color="white" />
+            </TouchableOpacity>
+          </Animated.View>
+
+          <TouchableOpacity onPress={toggleFab} style={styles.mainFab}>
+            <Ionicons
+              name={fabExpanded ? 'close' : 'add'}
+              size={28}
+              color="white"
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Overlay & Bottom Sheet container */}
+        <View style={StyleSheet.absoluteFill}>
+          {/* Overlay behind the BottomSheet */}
+          {overlayVisible && (
+            <Pressable style={styles.overlay} onPress={closeSheet} />
+          )}
+
+          {/* Bottom Sheet on top of overlay */}
+          <BottomSheet
+            ref={bottomSheetRef}
+            index={-1}
+            snapPoints={snapPoints}
+            enablePanDownToClose
+            onClose={() => setOverlayVisible(false)}>
+            <BottomSheetView style={styles.sheetContent}>
+              <TouchableOpacity onPress={pickImage} style={styles.sheetButton}>
+                <Text>Select from Gallery</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={closeSheet} style={styles.sheetButton}>
+                <Text style={{ color: 'red' }}>Cancel</Text>
+              </TouchableOpacity>
+            </BottomSheetView>
+          </BottomSheet>
+        </View>
+      </GestureHandlerRootView>
     </SafeAreaView>
   );
 };
@@ -168,6 +236,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
   },
+  iconButton: {
+    marginRight: 12,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#f7f7f7',
+  },
   dropdown: {
     position: 'absolute',
     top: 36,
@@ -186,6 +260,27 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
+  noHistoryText: {
+    marginTop: 20,
+    color: 'gray',
+  },
+  historyItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    backgroundColor: '#f2f2f2',
+    padding: 10,
+    borderRadius: 10,
+  },
+  historyImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+  },
+  historyText: {
+    flex: 1,
+    marginLeft: 12,
+  },
   fabContainer: {
     position: 'absolute',
     bottom: 30,
@@ -200,12 +295,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  actionButton: {
-    position: 'absolute',
-    right: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   subButton: {
     width: 48,
     height: 48,
@@ -215,23 +304,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  bottomSheetBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'flex-end',
+  actionButton: {
+    position: 'absolute',
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  bottomSheet: {
-    backgroundColor: '#fff',
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  sheetContent: {
     padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    gap: 12,
   },
-  sheetTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  sheetOption: {
-    paddingVertical: 12,
+  sheetButton: {
+    padding: 16,
+    borderRadius: 20,
+    backgroundColor: '#f7f7f7',
+    alignItems: 'center',
   },
 });

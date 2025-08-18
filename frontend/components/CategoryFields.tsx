@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,28 +18,20 @@ import {
   Feather,
 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { AuthContext } from '@/utils/AuthContext';
-import axios from 'axios';
-
-const BASE_URL = 'http://127.0.0.1:8000';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CropSelector = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [crops, setCrops] = useState([]);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
-  const [newCrop, setNewCrop] = useState({
-    name: '',
-    area: '',
-    location: '',
-  });
+  const [newCrop, setNewCrop] = useState({ name: '', area: '', location: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const { authToken } = useContext(AuthContext);
   const animationsRef = useRef([]);
   const router = useRouter();
 
-  const getIcon = (name: string) => {
+  const getIcon = (name) => {
     const key = name.toLowerCase();
     if (key.includes('grape')) return 'fruit-grapes-outline';
     if (key.includes('watermelon')) return 'fruit-watermelon';
@@ -54,15 +46,27 @@ const CropSelector = () => {
     return 'leaf';
   };
 
-  // Handle the add crop by submitting to database
+  const loadStoredCrops = async () => {
+    try {
+      const stored = await AsyncStorage.getItem('userCrops');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    const fetchCrops = async () => {
+      const stored = await loadStoredCrops();
+      setCrops(stored);
+      animationsRef.current = stored.map(() => new Animated.Value(1));
+    };
+    fetchCrops();
+  }, []);
+
   const handleAddCrop = async () => {
     if (!newCrop.name || !newCrop.area || !newCrop.location) {
       setErrorMessage('All fields are required.');
-      return;
-    }
-
-    if (!authToken) {
-      ToastAndroid.show('Not authenticated', ToastAndroid.SHORT);
       return;
     }
 
@@ -70,37 +74,22 @@ const CropSelector = () => {
     setErrorMessage('');
 
     try {
-      const response = await fetch(`${BASE_URL}/api/crops/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(newCrop),
-      });
+      const updatedCrops = [...crops, newCrop];
+      await AsyncStorage.setItem('userCrops', JSON.stringify(updatedCrops));
+      ToastAndroid.show('Crop saved!', ToastAndroid.SHORT);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to submit crop. Try again.');
-      }
-
-      const addedCrop = await response.json();
-
-      ToastAndroid.show('Crop submitted successfully!', ToastAndroid.SHORT);
-
-      setCrops([...crops, addedCrop]);
+      setCrops(updatedCrops);
       animationsRef.current.push(new Animated.Value(1));
       setNewCrop({ name: '', area: '', location: '' });
       setModalVisible(false);
-    } catch (error: any) {
-      console.error('Submit Error:', error);
-      setErrorMessage(error.message);
+    } catch (error) {
+      setErrorMessage('Failed to save crop.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const toggleSelection = (index: number) => {
+  const toggleSelection = (index) => {
     if (!selectionMode) return;
     setSelectedIndexes((prev) =>
       prev.includes(index)
@@ -109,7 +98,7 @@ const CropSelector = () => {
     );
   };
 
-  const enterSelectionMode = (index: number) => {
+  const enterSelectionMode = (index) => {
     setSelectionMode(true);
     setSelectedIndexes([index]);
   };
@@ -129,16 +118,16 @@ const CropSelector = () => {
         );
         setSelectedIndexes([]);
         setSelectionMode(false);
+        AsyncStorage.setItem('userCrops', JSON.stringify(
+          crops.filter((_, i) => !selectedIndexes.includes(i))
+        ));
       });
     });
   };
 
   return (
     <View style={{ padding: 20 }}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categories}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categories}>
         {crops.map((crop, index) => {
           const iconName = getIcon(crop.name);
           if (!animationsRef.current[index]) {
@@ -161,11 +150,9 @@ const CropSelector = () => {
                     toggleSelection(index);
                   } else {
                     router.push({
-                      pathname: '/crop-details',
+                      pathname: '/(screens)/GenerativeScreen',
                       params: {
-                        name: crop.name,
-                        area: crop.area,
-                        location: crop.location,
+                        crop: JSON.stringify(crop),
                       },
                     });
                   }
@@ -187,33 +174,20 @@ const CropSelector = () => {
           }}
           style={[
             styles.categoryBtn,
-            {
-              backgroundColor: selectionMode ? '#ffdddd' : '#f7f7f7',
-            },
+            { backgroundColor: selectionMode ? '#ffdddd' : '#f7f7f7' },
           ]}>
-          <Entypo
-            name={selectionMode ? 'trash' : 'plus'}
-            size={26}
-            color={selectionMode ? 'red' : 'black'}
-          />
+          <Entypo name={selectionMode ? 'trash' : 'plus'} size={26} color={selectionMode ? 'red' : 'black'} />
         </Pressable>
       </ScrollView>
 
       {/* Modal Bottom Sheet */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}>
+      <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Pressable
-              style={styles.closeIcon}
-              onPress={() => {
-                setModalVisible(false);
-                setErrorMessage('');
-              }}
-              hitSlop={10}>
+            <Pressable style={styles.closeIcon} onPress={() => {
+              setModalVisible(false);
+              setErrorMessage('');
+            }} hitSlop={10}>
               <Feather name="x" size={22} color="#333" />
             </Pressable>
 
@@ -226,7 +200,7 @@ const CropSelector = () => {
               style={styles.input}
             />
             <TextInput
-              placeholder="Enter Area Sqmeter"
+              placeholder="Enter Arces"
               keyboardType="numeric"
               value={newCrop.area}
               onChangeText={(text) => setNewCrop({ ...newCrop, area: text })}
@@ -243,10 +217,7 @@ const CropSelector = () => {
               <Text style={styles.errorText}>{errorMessage}</Text>
             ) : null}
 
-            <Pressable
-              style={[styles.submitBtn, isSubmitting && { opacity: 0.7 }]}
-              onPress={handleAddCrop}
-              disabled={isSubmitting}>
+            <Pressable style={[styles.submitBtn, isSubmitting && { opacity: 0.7 }]} onPress={handleAddCrop} disabled={isSubmitting}>
               {isSubmitting ? (
                 <ActivityIndicator color="#fff" />
               ) : (

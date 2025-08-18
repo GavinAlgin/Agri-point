@@ -1,131 +1,193 @@
-import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Switch, ScrollView, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign, Feather, FontAwesome5, FontAwesome6, Ionicons, MaterialCommunityIcons, } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React, { useContext, useEffect, useState } from 'react';
+import { Dimensions, Image, TouchableOpacity, Text, View, StyleSheet, Pressable, ScrollView, ToastAndroid } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { clearToken } from '@/utils/tokenStorage';
+import { AuthContext } from '@/utils/AuthContext';
+import axios from 'axios';
 
 const { width, height } = Dimensions.get('window');
 
-const Settings = () => {
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true);
-  const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(false);
+const ProfileScreen = () => {
   const router = useRouter();
-
-  const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
-  const toggleNotifications = () => setIsNotificationsEnabled(prev => !prev);
-  const toggleDarkMode = () => setIsDarkModeEnabled(prev => !prev);
+  const [user, setUser] = useState(null);
+  const { authToken, loading } = useContext(AuthContext);
 
   const handleLogout = async () => {
     await clearToken();
     // Redirect to login screen
     router.push('/(auth)/Login');
+    ToastAndroid.show("Successfully logged", ToastAndroid.SHORT);
   };
+
+  // Redirect to login if token is missing
+  useEffect(() => {
+    if (!loading && !authToken) {
+      router.replace('/(auth)/Login');
+    }
+  }, [authToken, loading]);
+
+  // Fetch logged-in user data
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!authToken) return;
+
+      try {
+        const res = await axios.get('http://192.168.163.137:8000/api/user/', {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+        setUser(res.data);
+        console.log('User loaded:', res.data);
+      } catch (error) {
+        console.error('Error fetching user data:', error.response?.data || error.message);
+      }
+    };
+
+    fetchUser();
+  }, [authToken]);
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Settings</Text>
-
-        {/* Dropdown */}
-        <View style={{ position: 'relative' }}>
-          <TouchableOpacity
-            onPress={toggleDropdown}
-            style={styles.dropdownButton}>
-            <Ionicons name='ellipsis-vertical' size={20} color='black' />
-          </TouchableOpacity>
-
-          {dropdownVisible && (
-            <View style={styles.dropdown}>
-              <TouchableOpacity style={styles.dropdownItem}>
-                <Text>Ask AI</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.dropdownItem}>
-                <Text>Report</Text>
-              </TouchableOpacity>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: height * 0.1 }}>
+        <View style={styles.headerContainer}>
+          <View style={styles.userInfo}>
+            <Image
+              source={require('@/assets/images/mesh.jpg')} // Add actual image URI if available
+              style={styles.userImage}
+            />
+            <View style={{ gap: 2 }}>
+              <Text style={styles.username}>{user?.username}</Text>
+              <Text style={styles.email}>{user?.email}</Text>
             </View>
-          )}
-        </View>
-      </View>
-
-      {/* Settings Options */}
-      <ScrollView contentContainerStyle={styles.settingsScroll}>
-        {/* Profile Section */}
-        <TouchableOpacity style={styles.profileSection}>
-          <Image
-            source={{
-              uri: 'https://i.pravatar.cc/100', // Replace with user's profile image URL
-            }}
-            style={styles.avatar}
-          />
-          <View style={{ flex: 1, marginLeft: 16 }}>
-            <Text style={styles.profileName}>John Doe</Text>
-            <Text style={styles.profileStatus}>Hey there! I am using ChatApp.</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#ccc" />
-        </TouchableOpacity>
 
-        {/* Section 1 */}
-        <View style={styles.settingsSection}>
-          <TouchableOpacity style={styles.settingsItem}>
-            <Text style={styles.settingsText}>Account</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingsItem}>
-            <Text style={styles.settingsText}>Privacy</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingsItem}>
-            <Text style={styles.settingsText}>SOS Response</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingsItem} onPress={() => router.push('/(screens)/GenerativeScreen')}>
-            <Text style={styles.settingsText}>Chats</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          <TouchableOpacity>
+            <AntDesign name="right" size={24} color="black" />
           </TouchableOpacity>
         </View>
 
-        {/* Section 2 */}
-        <View style={styles.settingsSection}>
-          <View style={styles.settingsItem}>
-            <Text style={styles.settingsText}>Notifications</Text>
-            <Switch
-              value={isNotificationsEnabled}
-              onValueChange={toggleNotifications}
-            />
+        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row' }}>
+            <TouchableOpacity style={styles.card} onPress={() => router.push('/(screens)/OrderScreen')}>
+              <Feather name="box" size={24} color="black" />
+              <Text style={styles.title}>Orders</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.card} onPress={() => router.navigate('')}>
+              <AntDesign name="retweet" size={24} color="black" />
+              <Text style={styles.title}>Recycle</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.settingsItem}>
-            <Text style={styles.settingsText}>Dark Mode</Text>
-            <Switch
-              value={isDarkModeEnabled}
-              onValueChange={toggleDarkMode}
-            />
+
+          <View style={{ flexDirection: 'row', marginBottom: 20 }}>
+            <TouchableOpacity style={styles.card} onPress={() => router.navigate('/(screens)/ChatScreen')}>
+              <FontAwesome6 name="star-of-life" size={24} color="black" />
+              <Text style={styles.title}>Chat AI</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.card} onPress={() => router.navigate('')}>
+              <Feather name="user" size={24} color="black" />
+              <Text style={styles.title}>Diagnose</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Section 3 */}
-        <View style={styles.settingsSection}>
-          <TouchableOpacity style={styles.settingsItem}>
-            <Text style={styles.settingsText}>Help</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+        <Text style={{ fontSize: 18, fontWeight: '600', padding: width * 0.05, marginTop: -22 }}>Activity</Text>
+
+        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 10 }} onPress={() => router.push('')}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="location-outline" size={24} color="black" />
+              </View>
+              <Text style={styles.linkText}>Address Book</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 10 }} onPress={() => router.push('')}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="notifications-outline" size={24} color="black" />
+              </View>
+              <Text style={styles.linkText}>Notification</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ flexDirection: 'row', marginTop: 20 }}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 10, right: 34 }} onPress={() => router.push('/(screens)/LanguageScreen')}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="language-outline" size={24} color="black" />
+              </View>
+              <Text style={styles.linkText}>Language</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 10, right: 3 }} onPress={() => router.push('/(screens)/TaskScreen')}>
+              <View style={styles.iconContainer}>
+                <AntDesign name="staro" size={24} color="black" />
+              </View>
+              <Text style={styles.linkText}>Tasks</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <Text style={{ fontSize: 18, fontWeight: '600', padding: width * 0.05, marginTop: 10 }}>Settings</Text>
+
+        <View style={{ flexDirection: 'column', padding: width * 0.04, gap: 14 }}>
+          <TouchableOpacity style={styles.account} onPress={() => router.push('')}>
+            <View style={styles.iconContainer}>
+              <MaterialCommunityIcons name="account-cog-outline" size={24} color="black" />
+            </View>
+            <Text style={styles.linkText}>Account Settings</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.settingsItem}>
-            <Text style={[styles.settingsText, { color: 'red' }]} onPress={handleLogout}>Logout</Text>
-            <Ionicons name="log-out-outline" size={20} color="red" />
+
+          <Pressable style={styles.account} onPress={() => router.push('')}>
+            <View style={styles.iconContainer}>
+              <AntDesign name="bank" size={24} color="black" />
+            </View>
+            <Text style={styles.linkText}>Payment Configurations</Text>
+          </Pressable>
+
+          <TouchableOpacity style={styles.account} onPress={() => router.push('')}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="help" size={24} color="black" />
+            </View>
+            <Text style={styles.linkText}>Help</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.account} onPress={() => router.push('')}>
+            <View style={styles.iconContainer}>
+              <Feather name="book-open" size={24} color="black" />
+            </View>
+            <Text style={styles.linkText}>Learn About Us</Text>
+          </TouchableOpacity>
+
+          <Pressable style={styles.logOut} onPress={handleLogout}>
+            <View style={styles.iconContainer}>
+              <AntDesign name="logout" size={24} color="black" />
+            </View>
+            <Text style={styles.logOutText}>LogOut</Text>
+          </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default Settings;
+export default ProfileScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#fff',
   },
   headerContainer: {
@@ -133,76 +195,75 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: height * 0.02,
-    paddingHorizontal: 16,
+    padding: width * 0.05,
   },
-  headerText: {
-    fontSize: 28,
-    fontWeight: 'bold',
+  userImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
-  dropdownButton: {
-    marginRight: 12,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: '#f7f7f7',
-  },
-  dropdown: {
-    position: 'absolute',
-    top: 44,
-    right: 0,
-    backgroundColor: '#f7f7f7',
-    borderRadius: 6,
-    paddingVertical: 6,
-    width: 120,
-    zIndex: 999,
-  },
-  dropdownItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  settingsScroll: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
-  profileSection: {
+  userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    borderBottomColor: '#e0e0e0',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    backgroundColor: '#fff',
+    gap: 10,
   },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#ccc',
-  },
-  profileName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  profileStatus: {
-    fontSize: 14,
-    color: '#777',
-    marginTop: 4,
-  },
-  settingsSection: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 10,
-    marginTop: 24,
-    paddingVertical: 4,
-  },
-  settingsItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomColor: '#e0e0e0',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  settingsText: {
+  username: {
     fontSize: 16,
+    color: '#000',
+    fontWeight: '600',
+  },
+  email: {
+    fontSize: 14,
+    color: 'rgba(0,0,0,0.5)',
+    fontWeight: '500',
+  },
+  card: {
+    alignItems: 'center',
+    margin: 10,
+    padding: 20,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 10,
+    width: 175,
+    height: 100,
+    justifyContent: 'center',
+  },
+  title: {
+    marginTop: 10,
+    fontSize: 16,
+  },
+  linkCard: {
+    flexDirection: 'row',
+  },
+  iconContainer: {
+    borderRadius: 30,
+    width: 50,
+    height: 50,
+    backgroundColor: '#f1f1f1f1',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  linkText: {
+    fontSize: 16,
+    fontWeight: '500'
+  },
+  account: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 10,
+    right: 3,
+  },
+  logOut: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 10,
+    right: 3,
+    marginBottom: 20,
+  },
+  logOutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'red'
   },
 });
