@@ -38,15 +38,31 @@ class CropViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        crop = serializer.save(user=self.request.user)
 
-    def get_queryset(self):
-        crop = Crop.objects.all()
+        # crop = Crop.objects.all()
 
         # Simulate AI call which we can replace with AI/ML model later
         advice = self.get_ai_advice(crop.name, crop.quantity)
         crop.ai_advice = advice
         crop.save()
+
+    def get_queryset(self):
+        return Crop.objects.all()
+    
+
+    def retrieve(self, request, *args, **kwargs):
+        crop = self.get_object()  # ✅ returns a single Crop instance
+        advice = self.get_ai_advice(crop.name, crop.quantity)
+
+        serializer = self.get_serializer(crop)
+        data = serializer.data
+        data['advice'] = advice   # ✅ attach AI advice
+        return Response(data)
+
+
+
+        
 
     def get_ai_advice(self, crop_name, quantity):
         # E.g., Dummy AI logic
