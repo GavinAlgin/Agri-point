@@ -59,7 +59,7 @@ const Index = () => {
       if (!authToken) return;
 
       try {
-        const res = await axios.get('http://192.168.177.137:8000/api/user/', {
+        const res = await axios.get('http://192.168.163.137:8000/api/user/', {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
@@ -111,6 +111,16 @@ const Index = () => {
         </View>
 
         <PlantSuggestionList />
+
+        <View style={styles.categoryHeader}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>News</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>See All</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
       </ScrollView>
       <StatusBar style="dark" />
     </SafeAreaView>

@@ -1,225 +1,199 @@
-import { StyleSheet, Text, View, TextInput, Pressable } from 'react-native'
-import { Link, useRouter } from 'expo-router'
-import React, { useState } from 'react'
+import { FontAwesome5 } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
+import React, { useContext, useState } from 'react';
+import {
+  Dimensions,
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Pressable,
+  ActivityIndicator,
+  ToastAndroid,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthIcons } from './authIcons';
-import { Image } from 'react-native';
+import axios from 'axios';
+import { useRouter } from 'expo-router';
+import { AuthContext } from '@/utils/AuthContext';
 
-function Forgot() {
-    const router = useRouter();
+const { width } = Dimensions.get('window');
 
-    const [newPassword, setNewPassword] = useState('');
-    const [newPasswordError, setNewPasswordError] = useState('');
+const Forgot = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState();
+  const router = useRouter();
+  const { login } = useContext(AuthContext);
 
-    const [rePassword, setRePassword] = useState('');
-    const [rePasswordError, setRePasswordError] = useState('');
+  const validateForm = (): boolean => {
+    if (!email || !password) {
+      ToastAndroid.show("Validation! Fill in all fields", ToastAndroid.SHORT);
+      // Alert.alert('Validation Error', 'Please fill in all fields.');
+      return false;
+    } else if (!username) {
+      ToastAndroid.show("Validation! Fill in all fields", ToastAndroid.SHORT);
+      return false;
+    } 
 
-    const [email, setEmail] = useState('');
-    const [emailError, setEmailError] = useState('');
-    const emailSymbol=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-       
-    const handleSubmit = () => {
-      if(!email.trim()){
-        setEmailError('email field is empty')
-        return; 
-      }else if(!emailSymbol.test(email)){
-        setEmailError('email is invalid');
-        return;
-      }else if(!newPassword.trim()){
-        setNewPasswordError('password field is empty')
-        return;
-      }else if(newPassword.length < 8){
-        setNewPasswordError('password must be 8 characters long')
-        return;
-      }else if(!rePassword.trim()){
-        setRePasswordError('re-enter password')
-        return;            
-      }else if(newPassword != rePassword){
-        setRePasswordError("password doesnt match")
-        return;
-      }else{
-        //validated successfully, send data
-        alert('password changed successfully')
-        newPassword.target.value=''
-        rePassword.target.value=''
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      ToastAndroid.show("Invalid Email", ToastAndroid.SHORT);
+      // Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleLogin = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post('http://192.168.177.137:8000/api/login/', {
+        username,
+        email,
+        password,
+      });
+
+      console.log('Login success', response.data);
+      ToastAndroid.show("Login Successful!", ToastAndroid.SHORT);
+
+      const token = response.data.access; // Adjust this if the token key is different
+
+      if (token) {
+        await login(token);
+        router.push('/(tabs)');
+      } else {
+        ToastAndroid.show("No token received.", ToastAndroid.SHORT);
       }
-      setNewPasswordError('');
-      setRePasswordError('');
-        
+
+    } catch (error: any) {
+      console.error('Login failed:', error.response?.data || error.message);
+      ToastAndroid.show(
+        "Login Failed: " + (error?.response?.data?.detail || 'An error occurred.'),
+        ToastAndroid.SHORT
+      );
+    } finally {
+      setLoading(false);
     }
-    //          PASSWORD VISIBILITY TOOGLE
-    const [showPassword, setShowPassword] = useState(false);
-    const toogleVisibility = () => {
-        setShowPassword(!showPassword)
-    }
-    //          PASSWORD VISIBILITY TOOGLE
-    const [showPassword2, setShowPassword2] = useState(false);
-    const toogleVisibility2 = () => {
-        setShowPassword2(!showPassword2)
-    }    
+  };
+
+
   return (
-    <SafeAreaView style={{backgroundColor: '#edf3ff', height: '100%'}}>
-        <View style={[styles.wrapper, {height: '100%'}]}>
-            {/*            BACK BUTTON        */}
-            <View style={[styles.block, {marginLeft: -9}]}>
-                <Link href={'/Login'}>
-                    <Image source={AuthIcons[0]} style={{width: 35, height: 35}} />
-                </Link>
-            </View>
-            {/*         LOGIN HEADING            */}
-            <View style={styles.block}>
-                <Text style={{fontSize: 23, fontWeight: 'bold'}}>Change password</Text>
-            </View>
-            <View style={styles.block}>
-                <Text style={{color: 'grey', fontSize: 16}}>Continue harvesting by changing password</Text>
-            </View>        
-            {/*               LOGIN FORM                   */}
-            <View style={[styles.block, {height: 340}]}>
+    <SafeAreaView style={styles.Container}>
+      <View style={styles.HeaderContainer}>
+        <FontAwesome5 name="star-of-life" size={24} color="white" />
+      </View>
 
-                {/*     email input and error handling       */}
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 17, fontWeight: 'bold'}]}>
-                        Email
-                    </Text>
-                </View>
-                {emailError ? 
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 15, fontWeight: 'bold', color: 'red'}]}>
-                        {emailError}
-                    </Text>
-                </View> : null }
-                <View style={[styles.row,{borderWidth: 2, borderColor: 'grey', borderRadius: 10}]}>
-                    <Image source={AuthIcons[3]} style={{width: 20, height: 20, margin: 12}}/>
-                    <View style={[styles.cell, {width: 100}]}>
-                    <TextInput 
-                        placeholder='Enter your email'
-                        value={email}
-                        onChangeText={(text) => {
-                            setEmail(text);
-                            if(setEmailError) setEmailError('')
-                        }}
-                        style={{width: 280}}
-                    />
-                    </View>
-                </View>
-    
-                {/*   password input and error handling     */}
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 17, fontWeight: 'bold'}]}>
-                        Password
-                    </Text>
-                </View>
-                { newPasswordError ?
-                <View style={styles.row}>
-                    <Text style={[styles.cell, {textAlign: 'center', fontSize: 15, fontWeight: 'bold', color: 'red'}]}>
-                        {newPasswordError}
-                    </Text> 
-                </View> : null }
-                <View style={[styles.row, {borderWidth: 2, borderColor: 'grey', borderRadius: 10}]}>
-                    <Image source={AuthIcons[4]} style={{width: 20, height: 20, margin: 10}}/>
-                    <View style={styles.cell}>
-                        <TextInput 
-                            placeholder='Enter new password'
-                            value={newPassword}
-                            secureTextEntry={!showPassword}
-                            onChangeText={(text) => {
-                                setNewPassword(text);
-                                if(newPasswordError) setNewPasswordError('')
-                            }}
-                            style={{width: 260}}
-                        />
-                    </View>
-                    <Pressable onPress={toogleVisibility}>
-                        {showPassword ? 
-                            <Image source={AuthIcons[2]} style={{width: 20, height: 20, margin: 10}}/> :
-                            <Image source={AuthIcons[1]} style={{width: 20, height: 20, margin: 10}}/> 
-                        }
-                    </Pressable>
-                </View>
+      <View style={styles.Content}>
+        <Text style={{ fontSize: 28, fontWeight: 'bold' }}>Reset Password,</Text>
+        <Text style={{ color: '#777', fontSize: 18 }}>
+          Forgot your password, We got you just, easily enter We’re happy to see you here. Enter your email address and password.
+        </Text>
+      </View>
 
-                {/*     password input and error handling    */}
-                <View style={styles.row}>
-                    <Text style={[styles.cell, { fontSize: 17, fontWeight: 'bold'}]}>
-                       Re - Password
-                    </Text>
-                </View>
-                {rePasswordError ? 
-                <View style={styles.row}>
-                    <Text style={[styles.cell, {textAlign: 'center', fontSize: 15, fontWeight: 'bold', color: 'red'}]}>
-                        {rePasswordError}
-                    </Text>
-                </View> : null }
-                <View style={[styles.row, {borderWidth: 2, borderColor: 'grey', borderRadius: 10}]}>
-                    <Image source={AuthIcons[4]} style={{width: 20, height: 20, margin: 10}}/>
-                    <View style={styles.cell}>
-                    <TextInput 
-                        placeholder='Re-Enter Password'
-                        secureTextEntry={!showPassword2}
-                        value={rePassword}
-                        onChangeText={(text) => {
-                            setRePassword(text);
-                            if(rePasswordError) setRePasswordError('')
-                        }}
-                        style={{width: 260}}
-                    />
-                    </View>
-                    <Pressable onPress={toogleVisibility2}>
-                        {showPassword2 ? 
-                            <Image source={AuthIcons[2]} style={{width: 20, height: 20, margin: 10}}/> :
-                            <Image source={AuthIcons[1]} style={{width: 20, height: 20, margin: 10}}/> 
-                        }
-                    </Pressable>
-                </View>
-                <View style={styles.row}>
-                    <Text style={[styles.cell, {color: 'grey'}]}>Password must be 8 characters</Text>
-                </View>
-                {/*             buttons                */}
-                {/*     LOGIN BTN   */}
-                <View style={styles.row}>
-                    <View style={[styles.cell, {paddingTop: 10, flex: 1}]}>
-                    <Pressable
-                        style={({pressed}) => [
-                        styles.btn, 
-                        {backgroundColor: pressed ? 'grey' : '#0d7efe', opacity: pressed ? 0.8 : 1}
-                        ]}
-                        onPress={handleSubmit}
-                    >
-                        <Text style={styles.btnTitle}>Change Password</Text>
-                    </Pressable>
-                    </View>
-                </View>
-            </View>    
-        </View>
+      <View style={styles.loginForm}>
+        <TextInput
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          style={styles.InputBtn}
+        />
+        <TextInput
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.InputBtn}
+        />
+      </View>
+
+      <View style={styles.Btns}>
+        <TouchableOpacity style={styles.LoginBtn} onPress={handleLogin} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.BtnTitle}>reset password</Text>
+          )}
+        </TouchableOpacity>
+
+        <View style={styles.Separator} />
+
+        <TouchableOpacity style={styles.LoginBtn} onPress={() => router.push('/(auth)/Login')}>
+          <Text style={styles.BtnTitle}>Back to Login</Text>
+        </TouchableOpacity>
+      </View>
+
+      <StatusBar style="dark" />
     </SafeAreaView>
-)
-}                
-export default Forgot
+  );
+};
+
+export default Forgot;
 
 const styles = StyleSheet.create({
-    wrapper: {
-        margin: 10
+    Container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        padding: width * 0.04,
     },
-    block: {
+    HeaderContainer: {
+        padding: 12,
         borderRadius: 10,
-        borderColor: 'grey',
-        padding: 5
+        backgroundColor: '#103713',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        width: 50,
     },
-    row: {
-        flexDirection: 'row'
+    Content: {
+        flexDirection: 'column',
+        marginTop: 28,
     },
-    cell: {
-        //flex: 1,
-        //justifyContent: 'center',
-        //alignItems: 'center',
-        //margin: 2
+    loginForm: {
+        marginTop: 28,
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        gap: 16,
     },
-    btn: {
-        padding: 17,
-        borderRadius: 8,
+    InputBtn: {
+        borderColor: '#ddd',
+        borderWidth: 1,
+        borderRadius: 10,
+        width:  width * 0.9,
+        height: 50,
+    },
+    Btns: {
+        flexDirection: 'column',
+        marginTop: 28,
+        gap: 18,
+    },
+    LoginBtn: {
+        padding: 12,
+        backgroundColor: '#103713',
+        borderRadius: 10,
         alignItems: 'center'
     },
-    btnTitle:{
+    BtnTitle: {
+        fontSize: 20,
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    Forgot: {
+        textAlign: 'center',
         fontSize: 16,
-        color: 'white'
-    }
+        fontWeight: 'bold',
+        color: '#000',
+    },
+    Separator: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+        marginVertical: 12,
+    },
+
 })

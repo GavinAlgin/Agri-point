@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, FlatList, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Button, FlatList, StyleSheet, ToastAndroid } from 'react-native';
 import axios from 'axios';
 
-const API_BASE = 'http://192.168.8.128:8080/tasks'; // Change this to your LAN IP
+const API_BASE = 'http://192.168.163.137:8080/tasks'; // Change this to your LAN IP
 
 export default function ToDoScreen() {
   const [tasks, setTasks] = useState([]);
@@ -17,7 +17,7 @@ export default function ToDoScreen() {
       const res = await axios.get(`${API_BASE}/tasks`);
       setTasks(res.data.tasks);
     } catch (err) {
-      Alert.alert('Error', 'Could not fetch tasks');
+      ToastAndroid.show('Error, Could not fetch tasks', ToastAndroid.SHORT);
     }
   };
 
@@ -31,7 +31,7 @@ export default function ToDoScreen() {
       setTasks(res.data.tasks);
       setParagraph('');
     } catch (err) {
-      Alert.alert('Error', 'Failed to generate tasks');
+      ToastAndroid.show('Error, Failed to generate tasks', ToastAndroid.SHORT);
     }
   };
 

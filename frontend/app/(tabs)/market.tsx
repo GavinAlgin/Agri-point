@@ -13,7 +13,7 @@ import {
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Fontisto, Ionicons } from '@expo/vector-icons';
+import { Feather, Fontisto, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 const { width, height } = Dimensions.get('window');
@@ -21,26 +21,39 @@ const { width, height } = Dimensions.get('window');
 const vendors = [
   {
     id: '1',
-    name: 'Fresh Farm Produce',
-    category: 'An local Vegetables vendor re-seller and distributor',
-    icon: require('@/assets/images/mesh.jpg'),
-    interest: 'Tomatoes',
+    name: 'The Veggie Guy – Kgapane Phillip',
+    category: 'Vegetable & Boer Goat Supplier (Burgersfort)',
+    icon: require('@/assets/images/Maano-Khodani.jpg'),
+    description:
+      'Runs a local farm in Mafarafara, supplying Joburg Market, Spar, Nando’s, and rearing prize Boer goats.',
+    interest: 'Butternut, Mixed Vegetables, Boer goats',
   },
   {
     id: '2',
-    name: 'Local Bakery',
-    category: 'Breads & Pastries',
-    icon: require('@/assets/images/mesh.jpg'),
-    interest: 'Wheat Flour',
+    name: 'Matome Cynthia Mokgobu',
+    category: 'Vegetable Farmer (Bochum)',
+    icon: require('@/assets/images/Farmer_EDIT.webp'),
+    description: 'From Gemarke village, supplies Spar, Boxer with spinach, butternut, potatoes and more.',
+    interest: 'Spinach, Butternut, Potatoes, Mustard',
   },
   {
     id: '3',
-    name: 'Organic Honey Co.',
-    category: 'Honey',
+    name: 'AgriGreen (Makhado)',
+    category: 'Fruit & Vegetable Supplier',
     icon: require('@/assets/images/mesh.jpg'),
-    interest: 'Wildflowers',
+    description: 'Produces avocados, corn, sweet potatoes, lemons and greens with delivery/pick-up services.',
+    interest: 'Avocados, Corn, Sweet Potatoes, Lemons, Greens',
+  },
+  {
+    id: '4',
+    name: 'Agrinema Farm',
+    category: 'Vegetables, Poultry & Ice',
+    icon: require('@/assets/images/mesh.jpg'),
+    description: 'Established in 2022; supplies premium vegetables, broiler chickens, and ice across Limpopo.',
+    interest: 'Tomatoes, Onions, Spinach, Broiler Chickens, Ice Products',
   },
 ];
+
 
 const Market = () => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -74,11 +87,11 @@ const Market = () => {
 
           {dropdownVisible && (
             <View style={styles.dropdown}>
-              <TouchableOpacity style={styles.dropdownItem}>
-                <Text>Share</Text>
+              <TouchableOpacity style={styles.dropdownItem} onPress={() => router.push('/(screens)/OrderScreen')}>
+                <Text>Orders</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.dropdownItem}>
-                <Text>Report</Text>
+                <Text>Send Invite</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -99,25 +112,38 @@ const Market = () => {
         </TouchableOpacity>
       </View>
 
+      <View style={{padding: width * 0.04}}>
+        <View style={{ padding: width * 0.04, borderRadius: 12, width: 380, backgroundColor: 'lightyellow', alignItems: 'center', flexDirection: 'row', gap: 10, }}>
+          <Feather name="alert-triangle" size={24} color="orange" />
+          <Text style={{ fontSize: 12, }}>Alert! the SME&apos;s displayed are ones registered to the agri-point registration forum.</Text>
+        </View>
+      </View>
+
       {/* Vendor List */}
       <FlatList
         data={filteredVendors}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => router.push('/(screens)/VendorDetailScreen')}>
-            <View style={styles.card}>
-              <Image source={item.icon} style={styles.icon} />
-              <View style={styles.info}>
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.category}>{item.category}</Text>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{item.interest}</Text>
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: '/(screens)/VendorDetailScreen',
+                  params: { vendor: JSON.stringify(item) },
+                })
+              }
+            >
+              <View style={styles.card}>
+                <Image source={item.icon} style={styles.cardImage} />
+                <View style={styles.cardContent}>
+                  <Text style={styles.name}>{item.name}</Text>
+                  <Text style={styles.category}>{item.category}</Text>
+                  <Text style={styles.interest}>{item.interest}</Text>
                 </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        )}
+            </TouchableOpacity>
+          )}
+
       />
     </SafeAreaView>
   );
@@ -184,49 +210,40 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    flexDirection: 'row',
-    padding: 16,
     backgroundColor: '#fff',
     borderRadius: 12,
-    borderColor: '#f8f8f8',
+    overflow: 'hidden',
+    marginBottom: 16,
     borderWidth: 1,
-    marginBottom: 12,
-    alignItems: 'center',
+    borderColor: '#f7f7f7',
   },
-  icon: {
-    width: 84,
-    height: 84,
-    marginRight: 12,
-    borderRadius: 8,
+  cardImage: {
+    width: '100%',
+    height: 180,
+    resizeMode: 'cover',
   },
-  info: {
-    flex: 1,
+  cardContent: {
+    padding: 12,
   },
   name: {
     fontSize: 18,
     fontWeight: '600',
+    marginBottom: 4,
+    color: '#333',
   },
   category: {
     fontSize: 14,
-    color: '#555',
-    marginTop: 4,
+    color: '#777',
+    marginBottom: 8,
   },
-  badge: {
-    backgroundColor: '#103713',
+  interest: {
+    fontSize: 13,
+    color: '#103713',
+    fontWeight: '600',
+    backgroundColor: '#e6f2e6',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
-    marginTop: 6,
+    borderRadius: 8,
     alignSelf: 'flex-start',
   },
-  badgeText: {
-    fontSize: 12,
-    color: '#fff',
-    fontWeight: '600',
-  },
-  Favouritebtn: {
-    padding: 12,
-    borderRadius: 20,
-    backgroundColor: '#f7f7f7',
-  }
 });

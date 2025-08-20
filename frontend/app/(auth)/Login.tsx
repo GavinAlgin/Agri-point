@@ -53,7 +53,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://192.168.177.137:8000/api/login/', {
+      const response = await axios.post('http://192.168.163.137:8000/api/login/', {
         username,
         email,
         password,
@@ -131,13 +131,13 @@ const Login = () => {
           )}
         </TouchableOpacity>
 
-        <Pressable onPress={() => router.push('/(tabs)')}>
+        <Pressable onPress={() => router.push('/(auth)/Forgot')}>
           <Text style={styles.Forgot}>Forgot Password?</Text>
         </Pressable>
 
         <View style={styles.Separator} />
 
-        <TouchableOpacity style={styles.LoginBtn} onPress={() => router.push('/(auth)/Forgot')}>
+        <TouchableOpacity style={styles.LoginBtn} onPress={() => router.push('/(auth)/Registration')}>
           <Text style={styles.BtnTitle}>Create an Account</Text>
         </TouchableOpacity>
       </View>
