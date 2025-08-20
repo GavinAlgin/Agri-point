@@ -1,4 +1,5 @@
 import random
+import requests
 from django.shortcuts import render
 from rest_framework import viewsets
 from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock
@@ -40,8 +41,6 @@ class CropViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         crop = serializer.save(user=self.request.user)
 
-        # crop = Crop.objects.all()
-
         # Simulate AI call which we can replace with AI/ML model later
         advice = self.get_ai_advice(crop.name, crop.quantity)
         crop.ai_advice = advice
@@ -50,7 +49,6 @@ class CropViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Crop.objects.all()
     
-
     def retrieve(self, request, *args, **kwargs):
         crop = self.get_object()  # ✅ returns a single Crop instance
         advice = self.get_ai_advice(crop.name, crop.quantity)
@@ -59,10 +57,6 @@ class CropViewSet(viewsets.ModelViewSet):
         data = serializer.data
         data['advice'] = advice   # ✅ attach AI advice
         return Response(data)
-
-
-
-        
 
     def get_ai_advice(self, crop_name, quantity):
         # E.g., Dummy AI logic
