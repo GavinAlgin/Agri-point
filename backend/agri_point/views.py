@@ -1,13 +1,14 @@
+import random
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Post, Crop, Product,Equipment
-from .serializers import PostSerializer, CropSerializer, UserSerializer, ProductSerializer, EquipmentSerializer
+from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock
+from .serializers import PostSerializer, CropSerializer, UserSerializer, ProductSerializer, EquipmentSerializer, FarmingAdviceRequestSerializer, LivestockSerializer
 from django.contrib.auth.models import User
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
@@ -27,7 +28,8 @@ def current_user_view(request):
     user = request.user
     return Response({
         'username': user.username,
-        'email': user.email
+        'email': user.email,
+        'password': user.password
     })
 
 class CropViewSet(viewsets.ModelViewSet):
@@ -37,6 +39,24 @@ class CropViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        crop = Crop.objects.all()
+
+        # Simulate AI call which we can replace with AI/ML model later
+        advice = self.get_ai_advice(crop.name, crop.quantity)
+        crop.ai_advice = advice
+        crop.save()
+
+    def get_ai_advice(self, crop_name, quantity):
+        # E.g., Dummy AI logic
+        tips = [
+            f"For {crop_name}, ensure proper irrigation to boost yields.",
+            f"Monitor {crop_name} for pests weekly.",
+            f"Add organic fertilizer to improve {crop_name} growth.",
+            f"Planting density for {crop_name} should match soil fertility."
+        ]
+        return random.choice(tips)
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -51,6 +71,24 @@ class ProductViewSet(viewsets.ModelViewSet):
 class EquipmentViewSet(viewsets.ModelViewSet):
     queryset = Equipment.objects.filter(type='equipment')
     serializer_class = EquipmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class FarmingAdviceRequestViewSet(viewsets.ModelViewSet):
+    queryset = FarmingAdviceRequest.objects.all()
+    serializer_class = FarmingAdviceRequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class LivestockViewSet(viewsets.ModelViewSet):
+    queryset = Livestock.objects.all()
+    serializer_class = LivestockSerializer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):

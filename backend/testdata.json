@@ -1,0 +1,24 @@
+[
+    {
+        "name": "Cow",
+        "category": "Bonsmar",
+        "weight": "125",
+        "condition": "Healthy"
+    },
+    {
+        "user": 1,
+        "name": "Cow",
+        "category": "Bonsmar",
+        "weight": 125,
+        "condition": "Healthy",
+        "quantity": 12,
+        "planted_at": "2025-08-16"
+    },
+    {
+        "name": "Maize",
+        "quantity": 50,
+        "planted_at": "2025-08-16",
+        "image": "http://127.0.0.1:8000/media/crop_images/maize.jpg",
+        "ai_advice": "For Maize, ensure proper irrigation to boost yields."
+    }
+]

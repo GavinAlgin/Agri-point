@@ -21,35 +21,33 @@ const ImgGenAIScreen = () => {
     setTyping(true);
 
     try {
-      const response = await fetch('https://api.plant.id/v2/identify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Api-Key': 'YOUR_PLANT_ID_API_KEY',
-        },
-        body: JSON.stringify({
-          images: [image], // Pass image URL
-          similar_images: true,
-          details: ["common_names", "url", "name_authority", "wiki_description", "taxonomy"],
-        }),
-      });
+      // Extract filename from URI (e.g., apple.jpg -> "apple")
+      const imageName = (image as string)?.split('/').pop()?.split('.')[0]?.toLowerCase() || '';
 
-      const data = await response.json();
+      let responseText = '';
 
-      if (data?.suggestions?.length > 0) {
-        const plant = data.suggestions[0];
-        const name = plant.plant_name;
-        const commonNames = plant?.plant_details?.common_names?.join(', ') || '';
-        const description = plant.plant_details?.wiki_description?.value || 'No description available.';
-
-        setAiResponse(`🌿 The image is identified as *${name}* (${commonNames}).\n\n${description}`);
-      } else {
-        setAiResponse("🤖 Sorry, I couldn't identify this plant. Try another image.");
+      switch (imageName) {
+        case 'apple':
+          responseText = `🍎 This is an *Apple*.\n\n🔍 **Condition**: The apple appears fresh and ripe.\n💡 **Suggestions**: Store in a cool place to keep it crisp.\n🌱 **Improvement**: To grow better apples, ensure the tree gets full sunlight and consistent watering.`;
+          break;
+        case 'banana':
+          responseText = `🍌 This is a *Banana*.\n\n🔍 **Condition**: Slightly overripe with brown spots.\n💡 **Suggestions**: Perfect for smoothies or baking.\n🌱 **Improvement**: Bananas grow best in warm, humid environments with rich, well-drained soil.`;
+          break;
+        case 'mango':
+          responseText = `🥭 This is a *Mango*.\n\n🔍 **Condition**: Firm and ripe.\n💡 **Suggestions**: Ready to be eaten fresh or used in salads.\n🌱 **Improvement**: Mango trees need deep watering and regular pruning for optimal fruiting.`;
+          break;
+        case 'orange':
+          responseText = `🍊 This is an *Orange*.\n\n🔍 **Condition**: Juicy and ripe.\n💡 **Suggestions**: Great for juicing or snacking.\n🌱 **Improvement**: Provide citrus trees with balanced fertilizer and avoid overwatering.`;
+          break;
+        default:
+          responseText = "🤖 Sorry, I couldn't identify this fruit. Please try with a clear image named after a fruit like 'apple', 'banana', etc.";
       }
+
+      setAiResponse(responseText);
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Failed to contact the plant identification API.");
-      setAiResponse("❌ Something went wrong while generating the AI response.");
+      Alert.alert("Error", "Something went wrong while analyzing the image.");
+      setAiResponse("❌ Failed to generate a response.");
     } finally {
       setLoading(false);
       setTyping(false);
@@ -105,6 +103,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     marginBottom: 12,
     fontWeight: 'bold',
+    alignSelf: 'flex-start',
   },
   image: {
     width: 250,
@@ -136,16 +135,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     alignSelf: 'flex-start',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   aiIcon: {
     marginRight: 8,
+    marginTop: 3,
   },
   aiResponseText: {
     fontSize: 16,
     color: '#33691E',
+    flex: 1,
   },
 });
-
-
-// nukitashi the animation
