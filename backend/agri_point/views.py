@@ -12,6 +12,71 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
+PLANT_API_KEY = "t4BJQ00zXdqLKNEbNwkO"
+MODEL_ID = "plant-disease-detection-v2-2nclk/1"
+
+# @api_view(["POST"])
+# def identity_crop(request):
+#     image_file = request.FILES.get("image")
+#     if not image_file:
+#         return Response({"error": "No image uploaded"}, status=400)
+
+#     url = f"https://detect.roboflow.com/{MODEL_ID}?api_key={PLANT_API_KEY}"
+
+#     # Send request to Roboflow API
+#     response = requests.post(url, files={"file": image_file})
+
+#     files = {
+#         'image': image_file.read()
+#     }
+#     response = request.post(
+#         headers={"Api-Key": PLANT_API_KEY},
+#         files={'images': image_file}
+#     )
+
+#     if response.status_code == 200:
+#         data = response.json()
+#         # Extract best prediction
+#         suggestion = data.get('result', {}).get('classification', {}).get("suggestions", [])[0]
+#         return Response({
+#             "crop_detected": suggestion.get("name", "Unknown"),
+#             "probability": suggestion.get("probability", 0),
+#             "raw_response": data
+#         })
+#     else:
+#         return Response({'error': "API request failed", "details": request.text}, status=500)
+
+@api_view(["POST"])
+def identity_crop(request):
+    image_file = request.FILES.get("image")
+    if not image_file:
+        return Response({"error": "No image uploaded"}, status=400)
+
+    # Roboflow inference endpoint
+    url = f"https://detect.roboflow.com/{MODEL_ID}?api_key={PLANT_API_KEY}"
+
+    # Send request to Roboflow API
+    response = requests.post(url, files={"file": image_file})
+
+    if response.status_code == 200:
+        data = response.json()
+
+        # Extract the best prediction
+        predictions = data.get("predictions", [])
+        if predictions:
+            best = max(predictions, key=lambda x: x.get("confidence", 0))
+            return Response({
+                "crop_detected": best.get("class", "Unknown"),
+                "confidence": best.get("confidence", 0),
+                "raw_response": data
+            })
+        else:
+            return Response({"message": "No disease detected", "raw_response": data})
+    else:
+        return Response(
+            {"error": "Failed to analyze image", "details": response.text},
+            status=response.status_code
+        )
 
 # Create your views here.
 class PostViewSet(viewsets.ModelViewSet):
@@ -50,12 +115,12 @@ class CropViewSet(viewsets.ModelViewSet):
         return Crop.objects.all()
     
     def retrieve(self, request, *args, **kwargs):
-        crop = self.get_object()  # ✅ returns a single Crop instance
+        crop = self.get_object()
         advice = self.get_ai_advice(crop.name, crop.quantity)
 
         serializer = self.get_serializer(crop)
         data = serializer.data
-        data['advice'] = advice   # ✅ attach AI advice
+        data['advice'] = advice
         return Response(data)
 
     def get_ai_advice(self, crop_name, quantity):

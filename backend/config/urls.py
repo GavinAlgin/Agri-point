@@ -3,7 +3,7 @@ from django.conf import settings
 from django.urls import path, include
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
-from agri_point.views import PostViewSet, CropViewSet, RegisterView, ProductViewSet, EquipmentViewSet, FarmingAdviceRequestViewSet, LivestockViewSet, logout_view, current_user_view
+from agri_point.views import PostViewSet, CropViewSet, RegisterView, ProductViewSet, EquipmentViewSet, FarmingAdviceRequestViewSet, LivestockViewSet, logout_view, current_user_view, identity_crop
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 router = DefaultRouter()
@@ -17,6 +17,7 @@ router.register(r'livestock', LivestockViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/identity-crop/', identity_crop, name='identity_crop'),
 
     # Auth
     path('api/register/', RegisterView.as_view(), name="register"),
