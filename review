@@ -1,0 +1,338 @@
+// Validation
+using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace YourAppNamespace.Models
+{
+    public class Student
+    {
+        [Required(ErrorMessage = "First Name is required")]
+        [StringLength(50, ErrorMessage = "First Name cannot be longer than 50 characters")]
+        public string FirstName { get; set; }
+
+        [Required(ErrorMessage = "Last Name is required")]
+        [StringLength(50, ErrorMessage = "Last Name cannot be longer than 50 characters")]
+        public string LastName { get; set; }
+
+        [Required(ErrorMessage = "Age is required")]
+        [Range(16, 100, ErrorMessage = "Age must be between 16 and 100")]
+        public int Age { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid Email Address")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Enrollment Date is required")]
+        [DataType(DataType.Date)]
+        public DateTime EnrollmentDate { get; set; }
+    }
+}
+// html.cshtml.cs
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using YourAppNamespace.Models;
+
+namespace YourAppNamespace.Pages
+{
+    public class RegisterModel : PageModel
+    {
+        [BindProperty]
+        public Student Student { get; set; }
+
+        public string Message { get; set; }
+
+        public void OnGet()
+        {
+        }
+
+        public IActionResult OnPost()
+        {
+            if (!ModelState.IsValid)
+            {
+                return Page(); // return the form with validation messages
+            }
+
+            // Save to database (not implemented here)
+            Message = "Registration successful!";
+            return Page(); // return to the same page with success message
+        }
+    }
+}
+// html.cshtml
+@page
+@model YourAppNamespace.Pages.RegisterModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<h2>Student Registration</h2>
+
+<form method="post">
+    <div>
+        <label asp-for="Student.FirstName"></label>
+        <input asp-for="Student.FirstName" />
+        <span asp-validation-for="Student.FirstName" style="color:red"></span>
+    </div>
+
+    <div>
+        <label asp-for="Student.LastName"></label>
+        <input asp-for="Student.LastName" />
+        <span asp-validation-for="Student.LastName" style="color:red"></span>
+    </div>
+
+    <div>
+        <label asp-for="Student.Age"></label>
+        <input asp-for="Student.Age" type="number" />
+        <span asp-validation-for="Student.Age" style="color:red"></span>
+    </div>
+
+    <div>
+        <label asp-for="Student.Email"></label>
+        <input asp-for="Student.Email" />
+        <span asp-validation-for="Student.Email" style="color:red"></span>
+    </div>
+
+    <div>
+        <label asp-for="Student.EnrollmentDate"></label>
+        <input asp-for="Student.EnrollmentDate" type="date" />
+        <span asp-validation-for="Student.EnrollmentDate" style="color:red"></span>
+    </div>
+
+    <button type="submit">Register</button>
+</form>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <p style="color:green">@Model.Message</p>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+
+
+// Models/Vehicle.cs
+
+using System.ComponentModel.DataAnnotations;
+
+public abstract class Vehicle
+
+{
+
+    [Required]
+
+    [StringLength(50)]
+
+    public string Make { get; set; }
+
+    [Required]
+
+    [StringLength(50)]
+
+    public string Model { get; set; }
+
+    [Range(1900, 2100)]
+
+    public int Year { get; set; }
+
+    public abstract string Drive();
+
+}
+
+// Models/Car.cs
+
+public class Car : Vehicle
+
+{
+
+    public override string Drive()
+
+    {
+
+        return $"The {Year} {Make} {Model} car is driving smoothly!";
+
+    }
+
+}
+
+// Models/Bike.cs
+
+public class Bike : Vehicle
+
+{
+
+    public override string Drive()
+
+    {
+
+        return $"The {Year} {Make} {Model} bike is zipping through traffic!";
+
+    }
+
+}
+
+
+
+VehicleForm.cshtml.cs
+
+using Microsoft.AspNetCore.Mvc;
+
+using Microsoft.AspNetCore.Mvc.RazorPages;
+
+using System;
+
+public class VehicleFormModel : PageModel
+
+{
+
+    [BindProperty]
+
+    public string VehicleType { get; set; }
+
+    [BindProperty]
+
+    public Vehicle Vehicle { get; set; }
+
+    public string Message { get; set; }
+
+    public void OnGet()
+
+    {
+
+    }
+
+    public IActionResult OnPost()
+
+    {
+
+        if (!ModelState.IsValid)
+
+        {
+
+            return Page();
+
+        }
+
+        // Dynamically instantiate based on selected type
+
+        Vehicle actualVehicle = VehicleType switch
+
+        {
+
+            "Car" => new Car
+
+            {
+
+                Make = Vehicle.Make,
+
+                Model = Vehicle.Model,
+
+                Year = Vehicle.Year
+
+            },
+
+            "Bike" => new Bike
+
+            {
+
+                Make = Vehicle.Make,
+
+                Model = Vehicle.Model,
+
+                Year = Vehicle.Year
+
+            },
+
+            _ => null
+
+        };
+
+        if (actualVehicle == null)
+
+        {
+
+            ModelState.AddModelError("", "Invalid vehicle type");
+
+            return Page();
+
+        }
+
+        Message = actualVehicle.Drive();
+
+        return Page();
+
+    }
+
+}
+
+One-to-Many relationship:
+One Owner has many Vehicles
+Each Vehicle belongs to one Owner
+using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
+//Owner.cs
+public class Owner
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    [StringLength(100)]
+    public string Name { get; set; }
+
+    // Navigation property: One-to-Many
+    public ICollection<Vehicle> Vehicles { get; set; }
+}
+//Vechile.cs
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+public class Vehicle
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    [StringLength(50)]
+    public string Make { get; set; }
+
+    [Required]
+    [StringLength(50)]
+    public string Model { get; set; }
+
+    [Range(1900, 2100)]
+    public int Year { get; set; }
+
+    // Foreign key
+    [ForeignKey("Owner")]
+    public int OwnerId { get; set; }
+
+    // Navigation property
+    public Owner Owner { get; set; }
+}
+
+DBContext
+using Microsoft.EntityFrameworkCore;
+
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options)
+    {
+    }
+
+    public DbSet<Owner> Owners { get; set; }
+    public DbSet<Vehicle> Vehicles { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // Optional: Explicitly configure the relationship
+        modelBuilder.Entity<Vehicle>()
+            .HasOne(v => v.Owner)
+            .WithMany(o => o.Vehicles)
+            .HasForeignKey(v => v.OwnerId)
+            .OnDelete(DeleteBehavior.Cascade); // optional
+
+        base.OnModelCreating(modelBuilder);
+    }
+}
+
