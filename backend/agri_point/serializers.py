@@ -1,7 +1,10 @@
 from rest_framework import serializers
-from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock
-from rest_framework.serializers import ModelSerializer
 from django.contrib.auth.models import User
+from rest_framework.serializers import ModelSerializer
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeError
+from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock
 
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,3 +51,26 @@ class LivestockSerializer(serializers.ModelSerializer):
         model = Livestock
         fields = '__all__'
         read_only_fields = ['user']
+
+# Reset password serializer
+class ResetPasswordRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class SetNewPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True)
+    token = serializers.CharField(write_only=True)
+    uidb64 = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        try:
+            uid = smart_str(urlsafe_base64_decode(attrs["uidb64"]))
+            user = User.objects.get(id=uid)
+            if not PasswordResetTokenGenerator().check_token(user, attrs["token"]):
+                raise serializers.ValidationError("Invalid or expired token")
+            user.set_password(attrs["password"])
+            user.save()
+            return user
+        except Exception:
+            raise serializers.ValidationError("Invalid reset link")
+
+            

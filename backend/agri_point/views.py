@@ -1,16 +1,24 @@
 import random
 import requests
+from rest_framework import status
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock
-from .serializers import PostSerializer, CropSerializer, UserSerializer, ProductSerializer, EquipmentSerializer, FarmingAdviceRequestSerializer, LivestockSerializer
+from django.core.mail import send_mail
 from django.contrib.auth.models import User
-from rest_framework import generics, permissions
 from rest_framework.response import Response
+from django.utils.encoding import force_bytes
+from rest_framework import generics, permissions
+from django.utils.http import urlsafe_base64_encode
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from rest_framework.decorators import api_view, permission_classes, action
+from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock
+from .serializers import (
+    PostSerializer, CropSerializer, UserSerializer, ProductSerializer, EquipmentSerializer, 
+    FarmingAdviceRequestSerializer, LivestockSerializer, ResetPasswordRequestSerializer, 
+    SetNewPasswordSerializer
+)
 
 PLANT_API_KEY = "t4BJQ00zXdqLKNEbNwkO"
 MODEL_ID = "plant-disease-detection-v2-2nclk/1"
@@ -206,3 +214,37 @@ def logout_view(request):
         return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_request(request):
+    serializer = ResetPasswordRequestSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    email = serializer.validated_data['email']
+
+    try:
+        user = User.objects.get(email=email)
+        token = PasswordResetTokenGenerator().make_token(user)
+        uidb64 = urlsafe_base64_encode(force_bytes(user.id))
+
+        reset_link = f"http://localhost:3000/reset-password/{uidb64}/{token}"  # change to your frontend URL
+
+        send_mail(
+            subject="Password Reset Request",
+            message=f"Click the link to reset your password: {reset_link}",
+            from_email="noreply@agri-point.com",
+            recipient_list=[user.email],
+        )
+
+        return Response({"message": "Password reset link sent"}, status=200)
+    except User.DoesNotExist:
+        return Response({"error": "No user with this email"}, status=404)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_confirm(request):
+    serializer = SetNewPasswordSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    return Response({"message": "Password reset successful"}, status=200)
