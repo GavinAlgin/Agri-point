@@ -26,6 +26,8 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [firstname, setFirstname] = useState('');
+  const [lastname, setLastname ] = useState('');
 
   const validateForm = (): boolean => {
     if (!email || !username || !password || !confirmPassword) {
@@ -61,7 +63,10 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://192.168.251.5:8000/api/register/', {
+      const response = await axios.post('http://192.168.220.137:8000/api/register/', {
+        firstname,
+        lastname,
+      const response = await axios.post('http://192.168.163.137:8000/api/register/', {
         email,
         username,
         password,
@@ -114,6 +119,20 @@ const Register = () => {
           placeholder="Username"
           value={username}
           onChangeText={setUsername}
+          autoCapitalize="none"
+          style={styles.InputBtn}
+        />
+        <TextInput
+          placeholder="First name"
+          value={firstname}
+          onChangeText={setFirstname}
+          autoCapitalize="none"
+          style={styles.InputBtn}
+        />
+        <TextInput
+          placeholder="Last name"
+          value={lastname}
+          onChangeText={setLastname}
           autoCapitalize="none"
           style={styles.InputBtn}
         />

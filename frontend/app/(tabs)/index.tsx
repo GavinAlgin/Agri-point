@@ -84,8 +84,14 @@ const Index = () => {
           </Text>
           <Image source={require('../../assets/images/mesh.jpg')} style={styles.Avatar} />
         </View>
-
-        <WeatherCard />
+        
+        <IoTCard
+          droneName="Falcon 9"
+          condition="Needs Maintenance"
+          batteryLevel={45}
+          droneImage="https://example.com/drone.jpg"
+          onPress={() => console.log('Card Pressed')}
+        />
 
         {/* My Field Header */}
         <View style={styles.categoryHeader}>
@@ -145,8 +151,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   GreetingText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#333',
+  },
+  HeaderSubtitle: {
+    fontSize: 14,
+    color: '#333',
   },
   Avatar: {
     width: 50,
