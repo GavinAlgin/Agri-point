@@ -9,6 +9,7 @@ const _layout = () => {
         <Stack.Screen name='Generative' options={{ headerShown: false }}/>
         <Stack.Screen name='ProgessScreen' options={{ headerShown: false }}/>
         <Stack.Screen name='TaskScreen' options={{ headerShown: false }}/>
+        <Stack.Screen name='WeatherScreen' options={{ headerShown: false }} />
     </Stack>
     <StatusBar style='auto' />
     </>

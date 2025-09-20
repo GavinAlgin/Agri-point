@@ -11,9 +11,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import WeatherCard from '@/components/WeatherCard';
-import { Entypo, FontAwesome6, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import PlantSuggestionList from '@/components/PlantSuggestionList';
+import { useRouter } from 'expo-router';
+import IoTCard from '@/components/QuickActionsOs';
 
 const { width } = Dimensions.get('window');
 
@@ -30,6 +31,7 @@ const greetings = [
 
 const Index = () => {
   const [index, setIndex] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -44,12 +46,70 @@ const Index = () => {
   return (
     <SafeAreaView style={styles.Container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.Header}>
-          <Text style={styles.GreetingText}>{currentGreeting.text}, Gavin</Text>
-          <Image source={require('../../assets/images/mesh.jpg')} style={styles.Avatar} />
+        {/* Header */}
+          <View style={styles.Header}>
+            <View>
+              <Text style={styles.GreetingText}>Welcome {currentGreeting.text} 👋</Text>
+              <Text style={styles.HeaderSubtitle}>Smart Agriculture AI</Text>
+            </View>
+            <TouchableOpacity onPress={() => router.navigate('/settings')}>
+              <Image
+                source={{ uri: 'https://avatar.iran.liara.run/public/5' }}
+                style={styles.Avatar}
+              />
+            </TouchableOpacity>
+          </View>
+
+        {/* Weather Widget - Redesigned */}
+        <View style={[styles.card, styles.weatherCard]}>
+          {/* Top Row: Weather + Date + Button */}
+          <View style={styles.weatherTopRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>☀️ 28°C, Sunny</Text>
+              <Text style={styles.weatherDate}>Sep 2, 2025 — 2:45 PM</Text>
+            </View>
+            <TouchableOpacity style={styles.weatherButton}>
+              <Feather name="arrow-up-right" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Vertical Divider */}
+          <View style={styles.weatherDivider} />
+
+          {/* Weather Insights Row */}
+          <View style={styles.weatherInsights}>
+            <View style={styles.insightItem}>
+              <Ionicons name="water-outline" size={20} color="#555" />
+              <Text style={styles.insightText}>Humidity: 45%</Text>
+            </View>
+            <View style={styles.insightItem}>
+              <Ionicons name="leaf-outline" size={20} color="#555" />
+              <Text style={styles.insightText}>Wind: 12 km/h</Text>
+            </View>
+            <View style={styles.insightItem}>
+              <Ionicons name="sunny-outline" size={20} color="#555" />
+              <Text style={styles.insightText}>UV: Moderate</Text>
+            </View>
+          </View>
         </View>
 
-        <WeatherCard />
+        {/* My Device Header */}
+        <View style={styles.categoryHeader}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Devices</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>Learn More</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        
+        <IoTCard
+          droneName="Falcon 9"
+          condition="Needs Maintenance"
+          batteryLevel={45}
+          droneImage="https://example.com/drone.jpg"
+          onPress={() => console.log('Card Pressed')}
+        />
 
         {/* My Field Header */}
         <View style={styles.categoryHeader}>
@@ -113,8 +173,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   GreetingText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#333',
+  },
+  HeaderSubtitle: {
+    fontSize: 14,
+    color: '#333',
   },
   Avatar: {
     width: 50,
@@ -153,5 +218,51 @@ const styles = StyleSheet.create({
     backgroundColor: '#f7f7f7',
     width: (width - 60) / 4, 
     alignItems: 'center',
+  },
+  weatherCard: {},
+  card: {
+    padding: width * 0.04,
+    backgroundColor: '#f7f7f7',
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  weatherTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  weatherDate: {
+    fontSize: 12,
+    color: '#888',
+  },
+  weatherButton: {
+    backgroundColor: '#FFA500',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  weatherDivider: {
+    height: 1,
+    backgroundColor: '#ddd',
+    marginVertical: 10,
+  },
+  weatherInsights: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  insightItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  insightText: {
+    fontSize: 13,
+    color: '#555',
   },
 });

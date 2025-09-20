@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
+import API from '../api/api';
 
 const { width } = Dimensions.get('window');
 
@@ -45,7 +46,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://192.168.220.137:8000/api/login/', {
+      const response = await API.post('login/', {
         email,
         password,
       });
