@@ -37,17 +37,20 @@ const Register = () => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      ToastAndroid.show("Invalid email address.", ToastAndroid.SHORT);
+      // Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return false;
     }
 
     if (password.length < 6) {
-      Alert.alert('Weak Password', 'Password must be at least 6 characters.');
+      ToastAndroid.show("Weak password, make atleast 8 characters.", ToastAndroid.SHORT);
+      // Alert.alert('Weak Password', 'Password must be at least 6 characters.');
       return false;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Password Mismatch', 'Passwords do not match.');
+      ToastAndroid.show("Password Mismatch", ToastAndroid.SHORT);
+      // Alert.alert('Password Mismatch', 'Passwords do not match.');
       return false;
     }
 
@@ -63,6 +66,7 @@ const Register = () => {
       const response = await axios.post('http://192.168.220.137:8000/api/register/', {
         firstname,
         lastname,
+      const response = await axios.post('http://192.168.163.137:8000/api/register/', {
         email,
         username,
         password,
@@ -70,18 +74,22 @@ const Register = () => {
 
       console.log('Registration successful:', response.data);
       ToastAndroid.show("Success! Account created", ToastAndroid.SHORT);
-      Alert.alert('Success', 'Account created successfully.');
+      // Alert.alert('Success', 'Account created successfully.');
       // Optionally navigate to login screen
     } catch (error: any) {
       console.error('Registration failed:', error.response?.data || error.message);
-      Alert.alert('Registration Failed', error.response?.data?.detail || 'An error occurred.');
+      ToastAndroid.show(
+        "Registration Unsuccessful: " + (error?.response?.data?.detail || 'An error occurred.'),
+        ToastAndroid.SHORT
+      );
+      // Alert.alert('Registration Failed', error.response?.data?.detail || 'An error occurred.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleOAuth = async () => {
-    return ToastAndroid.show('Google Auth Coming Soon!',  ToastAndroid.SHORT);
+    ToastAndroid.show('Google Auth Coming Soon!',  ToastAndroid.SHORT);
   };
 
   return (

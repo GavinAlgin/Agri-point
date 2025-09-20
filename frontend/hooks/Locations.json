@@ -1,38 +1,80 @@
 {
   "regions": [
     {
-      "id": "cape-town",
-      "name": "Cape Town, Western Cape",
+      "id": "limpopo",
+      "name": "Limpopo, South Africa",
       "suggestions": [
         {
           "type": "fruit",
-          "title": "Strawberries",
-          "subtitle": "Cool-season berry",
-          "description": "Strawberries thrive in mild Western Cape winters and summers.",
-          "image": "https://example.com/images/strawberries.jpg",
-          "detailsLink": "https://example.com/strawberries-info"
+          "title": "Mangoes",
+          "subtitle": "Summer fruit (Dec–Mar)",
+          "description": "Limpopo produces ~75% of South Africa’s mangoes, harvested mid‑December to late March.",
+          "image": "https://southafrica.co.za/mango-production.html",
+          "detailsLink": "https://southafrica.co.za/mango-production.html"
+        },
+        {
+          "type": "fruit",
+          "title": "Avocados",
+          "subtitle": "Subtropical fruit",
+          "description": "Around 60% of South Africa’s avocados come from Limpopo’s subtropical regions like Tzaneen.",
+          "image": "https://fairview‑tzaneen.co.za/tzaneen‑agriculture.php",
+          "detailsLink": "https://fairview‑tzaneen.co.za/tzaneen‑agriculture.php"
+        },
+        {
+          "type": "fruit",
+          "title": "Citrus (Oranges, Grapefruit)",
+          "subtitle": "Citrus fruit",
+          "description": "Major citrus producer, with large volumes from Letsitele/Tzaneen; citrus season runs February–October.",
+          "image": "https://www.deona.co.za/production-fruit/",
+          "detailsLink": "https://www.deona.co.za/production-fruit/"
         },
         {
           "type": "vegetable",
-          "title": "Lettuce",
-          "subtitle": "Leafy green",
-          "description": "Grows well in winter with regular watering.",
-          "image": "https://example.com/images/lettuce.jpg",
-          "detailsLink": "https://example.com/lettuce-info"
-        }
-      ]
-    },
-    {
-      "id": "durban",
-      "name": "Durban, KwaZulu‑Natal",
-      "suggestions": [
+          "title": "Tomatoes",
+          "subtitle": "Versatile vegetable",
+          "description": "Limpopo supplies ~60% of South African tomatoes, with strong production in Polokwane and Tzaneen.",
+          "image": "https://ldard.gov.za/index.php/tomato-production-in-limpopo-province",
+          "detailsLink": "https://ldard.gov.za/index.php/tomato-production-in-limpopo-province"
+        },
         {
-          "type": "plant",
-          "title": "Bird of Paradise",
-          "subtitle": "Tropical ornamental",
-          "description": "Thrives in warm, humid climates of coastal KZN.",
-          "image": "https://example.com/images/bird-of-paradise.jpg",
-          "detailsLink": "https://example.com/bird-of-paradise-info"
+          "type": "vegetable",
+          "title": "Bell Peppers & Other Vegetables",
+          "subtitle": "Year‑round veggies",
+          "description": "Bell peppers, cabbage, spinach, squash, chilies, onions, green beans, cucumbers are widely grown.",
+          "image": "https://farmersmag.co.za/most-suitable-crops-in-limpopo/",
+          "detailsLink": "https://farmersmag.co.za/most-suitable-crops-in-limpopo/"
+        },
+        {
+          "type": "nut",
+          "title": "Macadamia & Pecans",
+          "subtitle": "High‑value nut trees",
+          "description": "Well-suited to Limpopo’s climate; increasingly planted for their economic potential.",
+          "image": "https://farmersmag.co.za/most-suitable-crops-in-limpopo/",
+          "detailsLink": "https://farmersmag.co.za/most-suitable-crops-in-limpopo/"
+        },
+        {
+          "type": "berry",
+          "title": "Blueberries, Raspberries",
+          "subtitle": "Temperate berries",
+          "description": "Grown in cool escarpment areas near Haenertsburg/Tzaneen, with harvests from November to March.",
+          "image": "https://internationalblueberry.org/2013/08/28/south-africa-berry-boon-for-limpopo-farm/",
+          "detailsLink": "https://internationalblueberry.org/2013/08/28/south-africa-berry-boon-for-limpopo-farm/"
+        },
+        {
+          "type": "succulent",
+          "title": "Aloe vera (Aloe ferox)",
+          "subtitle": "Medicinal succulent",
+          "description": "Thrives in Limpopo’s dry, hot conditions; used in cosmetics and traditional medicine.",
+          "image": "https://en.wikipedia.org/wiki/Aloe_ferox",
+          "detailsLink": "https://en.wikipedia.org/wiki/Aloe_ferox"
+        },
+        {
+          "type": "indigenous vegetable",
+          "title": "Morogo (African spinach)",
+          "subtitle": "Leafy green",
+          "description": "Nutritious traditional leafy vegetable, rich in vitamins A and C, protein up to 36%.",
+          "image": "https://en.wikipedia.org/wiki/Morogo",
+          "detailsLink": "https://en.wikipedia.org/wiki/Morogo"
         }
       ]
     }

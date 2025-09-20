@@ -1,6 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   Dimensions,
   StyleSheet,
@@ -9,8 +9,8 @@ import {
   TextInput,
   TouchableOpacity,
   Pressable,
-  Alert,
   ActivityIndicator,
+  ToastAndroid,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
@@ -23,17 +23,24 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState();
   const router = useRouter();
+  const { login } = useContext(AuthContext);
 
   const validateForm = (): boolean => {
     if (!email || !password) {
-      Alert.alert('Validation Error', 'Please fill in all fields.');
+      ToastAndroid.show("Validation! Fill in all fields", ToastAndroid.SHORT);
+      // Alert.alert('Validation Error', 'Please fill in all fields.');
       return false;
-    }
+    } else if (!username) {
+      ToastAndroid.show("Validation! Fill in all fields", ToastAndroid.SHORT);
+      return false;
+    } 
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      ToastAndroid.show("Invalid Email", ToastAndroid.SHORT);
+      // Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return false;
     }
 
@@ -50,15 +57,30 @@ const Login = () => {
         email,
         password,
       });
+
       console.log('Login success', response.data);
-      Alert.alert('Login Successful', `Welcome, ${response.data.user.name}`);
+      ToastAndroid.show("Login Successful!", ToastAndroid.SHORT);
+
+      const token = response.data.access; // Adjust this if the token key is different
+
+      if (token) {
+        await login(token);
+        router.push('/(tabs)');
+      } else {
+        ToastAndroid.show("No token received.", ToastAndroid.SHORT);
+      }
+
     } catch (error: any) {
       console.error('Login failed:', error.response?.data || error.message);
-      Alert.alert('Login Failed', error.response?.data?.detail || 'An error occurred.');
+      ToastAndroid.show(
+        "Login Failed: " + (error?.response?.data?.detail || 'An error occurred.'),
+        ToastAndroid.SHORT
+      );
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <SafeAreaView style={styles.Container}>
@@ -83,6 +105,14 @@ const Login = () => {
           style={styles.InputBtn}
         />
         <TextInput
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+          keyboardType="username"
+          style={styles.InputBtn}
+        />
+        <TextInput
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
@@ -100,7 +130,7 @@ const Login = () => {
           )}
         </TouchableOpacity>
 
-        <Pressable>
+        <Pressable onPress={() => router.push('/(auth)/Forgot')}>
           <Text style={styles.Forgot}>Forgot Password?</Text>
         </Pressable>
 
@@ -118,6 +148,9 @@ const Login = () => {
 
 export default Login;
 
+// admin@gmail.com
+// gadmin
+// 1234@admin
 
 const styles = StyleSheet.create({
     Container: {

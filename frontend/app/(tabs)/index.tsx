@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,15 +6,17 @@ import {
   Dimensions,
   Image,
   TouchableOpacity,
-  Pressable,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import WeatherCard from '@/components/WeatherCard';
+import { FontAwesome6 } from '@expo/vector-icons';
 import PlantSuggestionList from '@/components/PlantSuggestionList';
+import CropSelector from '@/components/CategoryFields';
+import axios from 'axios';
+import { AuthContext } from '@/utils/AuthContext';
 import { useRouter } from 'expo-router';
-import IoTCard from '@/components/QuickActionsOs';
 
 const { width } = Dimensions.get('window');
 
@@ -31,76 +33,56 @@ const greetings = [
 
 const Index = () => {
   const [index, setIndex] = useState(0);
+  const [user, setUser] = useState(null);
+  const { authToken, loading } = useContext(AuthContext);
   const router = useRouter();
 
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prevIndex) => (prevIndex + 1) % greetings.length);
-    }, 4000); // every 4 seconds
-
+    }, 4000);
     return () => clearInterval(interval);
   }, []);
 
   const currentGreeting = greetings[index];
 
+  // Redirect to login if token is missing
+  useEffect(() => {
+    if (!loading && !authToken) {
+      router.replace('/(auth)/Login');
+    }
+  }, [authToken, loading]);
+
+  // Fetch logged-in user data
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!authToken) return;
+
+      try {
+        const res = await axios.get('http://192.168.163.137:8000/api/user/', {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+        setUser(res.data);
+        console.log('User loaded:', res.data);
+      } catch (error) {
+        console.error('Error fetching user data:', error.response?.data || error.message);
+      }
+    };
+
+    fetchUser();
+  }, [authToken]);
+
+
   return (
     <SafeAreaView style={styles.Container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-          <View style={styles.Header}>
-            <View>
-              <Text style={styles.GreetingText}>Welcome {currentGreeting.text} 👋</Text>
-              <Text style={styles.HeaderSubtitle}>Smart Agriculture AI</Text>
-            </View>
-            <TouchableOpacity onPress={() => router.navigate('/settings')}>
-              <Image
-                source={{ uri: 'https://avatar.iran.liara.run/public/5' }}
-                style={styles.Avatar}
-              />
-            </TouchableOpacity>
-          </View>
-
-        {/* Weather Widget - Redesigned */}
-        <View style={[styles.card, styles.weatherCard]}>
-          {/* Top Row: Weather + Date + Button */}
-          <View style={styles.weatherTopRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>☀️ 28°C, Sunny</Text>
-              <Text style={styles.weatherDate}>Sep 2, 2025 — 2:45 PM</Text>
-            </View>
-            <TouchableOpacity style={styles.weatherButton}>
-              <Feather name="arrow-up-right" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Vertical Divider */}
-          <View style={styles.weatherDivider} />
-
-          {/* Weather Insights Row */}
-          <View style={styles.weatherInsights}>
-            <View style={styles.insightItem}>
-              <Ionicons name="water-outline" size={20} color="#555" />
-              <Text style={styles.insightText}>Humidity: 45%</Text>
-            </View>
-            <View style={styles.insightItem}>
-              <Ionicons name="leaf-outline" size={20} color="#555" />
-              <Text style={styles.insightText}>Wind: 12 km/h</Text>
-            </View>
-            <View style={styles.insightItem}>
-              <Ionicons name="sunny-outline" size={20} color="#555" />
-              <Text style={styles.insightText}>UV: Moderate</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* My Device Header */}
-        <View style={styles.categoryHeader}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Devices</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAll}>Learn More</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.Header}>
+          <Text style={styles.GreetingText}>
+            {currentGreeting.text}, {user?.username || user?.email}
+          </Text>
+          <Image source={require('../../assets/images/mesh.jpg')} style={styles.Avatar} />
         </View>
         
         <IoTCard
@@ -121,21 +103,7 @@ const Index = () => {
           </View>
         </View>
 
-        {/* Category Buttons */}
-        <View style={styles.categories}>
-          <Pressable style={styles.categoryBtn}>
-            <MaterialCommunityIcons name="fruit-grapes-outline" size={26} color="black" />
-          </Pressable>
-          <Pressable style={styles.categoryBtn}>
-            <MaterialCommunityIcons name="fruit-watermelon" size={26} color="black" />
-          </Pressable>
-          <Pressable style={styles.categoryBtn}>
-            <MaterialCommunityIcons name="food-apple-outline" size={26} color="black" />
-          </Pressable>
-          <Pressable style={{ padding: 16, borderRadius: 10, backgroundColor: '#f7f7f7', width: 60, alignItems: 'center', }}>
-            <Entypo name="plus" size={26} color="black" />
-          </Pressable>
-        </View>
+        <CropSelector />
 
         {/* Suggestions Header */}
         <View style={styles.suggestionsHeader}>
@@ -149,8 +117,18 @@ const Index = () => {
         </View>
 
         <PlantSuggestionList />
+
+        <View style={styles.categoryHeader}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>News</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>See All</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
       </ScrollView>
-      <StatusBar style='dark' />
+      <StatusBar style="dark" />
     </SafeAreaView>
   );
 };
@@ -164,7 +142,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: width * 0.04,
-    paddingBottom: 60, // Add bottom padding for scroll spacing
+    paddingBottom: 60,
   },
   Header: {
     flexDirection: 'row',
@@ -204,65 +182,5 @@ const styles = StyleSheet.create({
   },
   seeAll: {
     color: '#ccc',
-  },
-  categories: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-evenly',
-    gap: 12,
-    marginBottom: 30,
-  },
-  categoryBtn: {
-    padding: 16,
-    borderRadius: 10,
-    backgroundColor: '#f7f7f7',
-    width: (width - 60) / 4, 
-    alignItems: 'center',
-  },
-  weatherCard: {},
-  card: {
-    padding: width * 0.04,
-    backgroundColor: '#f7f7f7',
-    borderRadius: 10,
-    marginBottom: 12,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  weatherTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  weatherDate: {
-    fontSize: 12,
-    color: '#888',
-  },
-  weatherButton: {
-    backgroundColor: '#FFA500',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  weatherDivider: {
-    height: 1,
-    backgroundColor: '#ddd',
-    marginVertical: 10,
-  },
-  weatherInsights: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  insightItem: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 6,
-  },
-  insightText: {
-    fontSize: 13,
-    color: '#555',
   },
 });
