@@ -53,7 +53,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://192.168.163.137:8000/api/login/', {
+      const response = await axios.post('http://192.168.251.5:8000/api/login/', {
         username,
         email,
         password,

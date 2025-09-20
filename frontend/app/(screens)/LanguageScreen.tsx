@@ -39,6 +39,20 @@ const LanguageScreen = () => {
           <Text style={styles.languageText}>English</Text>
           <Text style={{fontSize: 16, fontWeight: 'bold', color: 'blue'}}>Default</Text>
         </View>
+        <View style={styles.languageButton} >
+          <TouchableOpacity onPress={() => changeLanguage('Afrikaans')} style={[styles.checkbox, selected && styles.selectedContainer]}>
+            {selected && <View style={styles.checked} />}
+          </TouchableOpacity>
+          <Text style={styles.languageText}>Afrikaans</Text>
+          <Text style={{fontSize: 16, fontWeight: 'bold', color: 'blue'}}>Default</Text>
+        </View>
+        <View style={styles.languageButton} >
+          <TouchableOpacity onPress={() => changeLanguage('Sepedi')} style={[styles.checkbox, selected && styles.selectedContainer]}>
+            {selected && <View style={styles.checked} />}
+          </TouchableOpacity>
+          <Text style={styles.languageText}>Sepedi</Text>
+          <Text style={{fontSize: 16, fontWeight: 'bold', color: 'blue'}}>Default</Text>
+        </View>
       </View>
       <StatusBar style='dark' />
     </SafeAreaView>

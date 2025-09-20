@@ -59,7 +59,7 @@ const Index = () => {
       if (!authToken) return;
 
       try {
-        const res = await axios.get('http://192.168.163.137:8000/api/user/', {
+        const res = await axios.get('http://192.168.43.142:8000/api/user/', {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
