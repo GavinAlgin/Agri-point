@@ -14,7 +14,11 @@ import { StatusBar } from 'expo-status-bar';
 import { Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import PlantSuggestionList from '@/components/PlantSuggestionList';
 import { useRouter } from 'expo-router';
+<<<<<<< HEAD
 import IoTCard from '@/components/QuickActionsOs';
+=======
+import API from '../api/api';
+>>>>>>> 1813b6efd5544411e0812847678f48f61e969ff9
 
 const { width } = Dimensions.get('window');
 
@@ -38,8 +42,54 @@ const Index = () => {
       setIndex((prevIndex) => (prevIndex + 1) % greetings.length);
     }, 4000); // every 4 seconds
 
+<<<<<<< HEAD
     return () => clearInterval(interval);
   }, []);
+=======
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      ToastAndroid.show("Invalid Email", ToastAndroid.SHORT);
+      // Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleLogin = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      const response = await API.post('login/', {
+        email,
+        password,
+      });
+
+      console.log('Login success', response.data);
+      ToastAndroid.show("Login Successful!", ToastAndroid.SHORT);
+
+      const token = response.data.access; // Adjust this if the token key is different
+
+      if (token) {
+        await login(token);
+        router.push('/(tabs)');
+      } else {
+        ToastAndroid.show("No token received.", ToastAndroid.SHORT);
+      }
+
+    } catch (error: any) {
+      console.error('Login failed:', error.response?.data || error.message);
+      ToastAndroid.show(
+        "Login Failed: " + (error?.response?.data?.detail || 'An error occurred.'),
+        ToastAndroid.SHORT
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+>>>>>>> 1813b6efd5544411e0812847678f48f61e969ff9
 
   const currentGreeting = greetings[index];
 

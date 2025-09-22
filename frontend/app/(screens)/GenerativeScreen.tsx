@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import axios from 'axios';
 import Header from '@/components/CustomHeader';
+import { OpenAI } from "openai";
 
-const HUGGING_FACE_API_URL = 'https://api-inference.huggingface.co/models/<your-model>';
-const HF_API_KEY = '<your-huggingface-api-key>'; // Store securely in production
+// ⚠️ Store in env vars in production (e.g. process.env.EXPO_PUBLIC_HF_TOKEN)
+const HF_API_KEY = "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";
+
+const client = new OpenAI({
+  baseURL: "https://router.huggingface.co/v1", // Hugging Face router endpoint
+  apiKey: HF_API_KEY,
+});
 
 const GenerativeScreen = () => {
   const { crop } = useLocalSearchParams();
@@ -21,20 +26,20 @@ const GenerativeScreen = () => {
         2
       )}`;
 
-      const response = await axios.post(
-        HUGGING_FACE_API_URL,
-        { inputs: prompt },
-        {
-          headers: {
-            Authorization: `Bearer ${HF_API_KEY}`,
+      const chatCompletion = await client.chat.completions.create({
+        model: "deepseek-ai/DeepSeek-R1:fireworks-ai", // Pick the model you want
+        messages: [
+          {
+            role: "user",
+            content: prompt,
           },
-        }
-      );
+        ],
+      });
 
-      setStructuredResponse(response.data?.[0]?.generated_text || 'No response');
+      setStructuredResponse(chatCompletion.choices[0]?.message?.content || "No response");
     } catch (error) {
-      console.error('AI Error:', error);
-      setStructuredResponse('Failed to fetch AI response.');
+      console.error("AI Error:", error);
+      setStructuredResponse("Failed to fetch AI response.");
     } finally {
       setLoading(false);
     }
@@ -46,7 +51,7 @@ const GenerativeScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Header title={'My Field Anaylsis'} />
+      <Header title={'My Field Analysis'} />
       {loading ? (
         <ActivityIndicator size="large" />
       ) : (
@@ -69,5 +74,3 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 });
-
-

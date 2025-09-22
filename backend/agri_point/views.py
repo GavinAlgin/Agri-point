@@ -1,16 +1,90 @@
 import random
+import requests
+from rest_framework import status
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock
-from .serializers import PostSerializer, CropSerializer, UserSerializer, ProductSerializer, EquipmentSerializer, FarmingAdviceRequestSerializer, LivestockSerializer
+from django.core.mail import send_mail
 from django.contrib.auth.models import User
-from rest_framework import generics, permissions
 from rest_framework.response import Response
+from django.utils.encoding import force_bytes
+from rest_framework import generics, permissions
+from django.utils.http import urlsafe_base64_encode
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from rest_framework.decorators import api_view, permission_classes, action
+from .models import Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock
+from .serializers import (
+    PostSerializer, CropSerializer, UserSerializer, ProductSerializer, EquipmentSerializer, 
+    FarmingAdviceRequestSerializer, LivestockSerializer, ResetPasswordRequestSerializer, 
+    SetNewPasswordSerializer
+)
 
+PLANT_API_KEY = "t4BJQ00zXdqLKNEbNwkO"
+MODEL_ID = "plant-disease-detection-v2-2nclk/1"
+
+# @api_view(["POST"])
+# def identity_crop(request):
+#     image_file = request.FILES.get("image")
+#     if not image_file:
+#         return Response({"error": "No image uploaded"}, status=400)
+
+#     url = f"https://detect.roboflow.com/{MODEL_ID}?api_key={PLANT_API_KEY}"
+
+#     # Send request to Roboflow API
+#     response = requests.post(url, files={"file": image_file})
+
+#     files = {
+#         'image': image_file.read()
+#     }
+#     response = request.post(
+#         headers={"Api-Key": PLANT_API_KEY},
+#         files={'images': image_file}
+#     )
+
+#     if response.status_code == 200:
+#         data = response.json()
+#         # Extract best prediction
+#         suggestion = data.get('result', {}).get('classification', {}).get("suggestions", [])[0]
+#         return Response({
+#             "crop_detected": suggestion.get("name", "Unknown"),
+#             "probability": suggestion.get("probability", 0),
+#             "raw_response": data
+#         })
+#     else:
+#         return Response({'error': "API request failed", "details": request.text}, status=500)
+
+@api_view(["POST"])
+def identity_crop(request):
+    image_file = request.FILES.get("image")
+    if not image_file:
+        return Response({"error": "No image uploaded"}, status=400)
+
+    # Roboflow inference endpoint
+    url = f"https://detect.roboflow.com/{MODEL_ID}?api_key={PLANT_API_KEY}"
+
+    # Send request to Roboflow API
+    response = requests.post(url, files={"file": image_file})
+
+    if response.status_code == 200:
+        data = response.json()
+
+        # Extract the best prediction
+        predictions = data.get("predictions", [])
+        if predictions:
+            best = max(predictions, key=lambda x: x.get("confidence", 0))
+            return Response({
+                "crop_detected": best.get("class", "Unknown"),
+                "confidence": best.get("confidence", 0),
+                "raw_response": data
+            })
+        else:
+            return Response({"message": "No disease detected", "raw_response": data})
+    else:
+        return Response(
+            {"error": "Failed to analyze image", "details": response.text},
+            status=response.status_code
+        )
 
 # Create your views here.
 class PostViewSet(viewsets.ModelViewSet):
@@ -40,8 +114,6 @@ class CropViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         crop = serializer.save(user=self.request.user)
 
-        # crop = Crop.objects.all()
-
         # Simulate AI call which we can replace with AI/ML model later
         advice = self.get_ai_advice(crop.name, crop.quantity)
         crop.ai_advice = advice
@@ -50,19 +122,14 @@ class CropViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Crop.objects.all()
     
-
     def retrieve(self, request, *args, **kwargs):
-        crop = self.get_object()  # ✅ returns a single Crop instance
+        crop = self.get_object()
         advice = self.get_ai_advice(crop.name, crop.quantity)
 
         serializer = self.get_serializer(crop)
         data = serializer.data
-        data['advice'] = advice   # ✅ attach AI advice
+        data['advice'] = advice
         return Response(data)
-
-
-
-        
 
     def get_ai_advice(self, crop_name, quantity):
         # E.g., Dummy AI logic
@@ -147,3 +214,37 @@ def logout_view(request):
         return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_request(request):
+    serializer = ResetPasswordRequestSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    email = serializer.validated_data['email']
+
+    try:
+        user = User.objects.get(email=email)
+        token = PasswordResetTokenGenerator().make_token(user)
+        uidb64 = urlsafe_base64_encode(force_bytes(user.id))
+
+        reset_link = f"http://localhost:3000/reset-password/{uidb64}/{token}"  # change to your frontend URL
+
+        send_mail(
+            subject="Password Reset Request",
+            message=f"Click the link to reset your password: {reset_link}",
+            from_email="noreply@agri-point.com",
+            recipient_list=[user.email],
+        )
+
+        return Response({"message": "Password reset link sent"}, status=200)
+    except User.DoesNotExist:
+        return Response({"error": "No user with this email"}, status=404)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_confirm(request):
+    serializer = SetNewPasswordSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    return Response({"message": "Password reset successful"}, status=200)

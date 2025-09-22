@@ -218,6 +218,35 @@ const Index = () => {
 
   const currentGreeting = greetings[index];
 
+  // Redirect to login if token is missing
+  useEffect(() => {
+    if (!loading && !authToken) {
+      router.replace('/(auth)/Login');
+    }
+  }, [authToken, loading]);
+
+  // Fetch logged-in user data
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!authToken) return;
+
+      try {
+        const res = await axios.get('http://192.168.43.142:8000/api/user/', {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+        setUser(res.data);
+        console.log('User loaded:', res.data);
+      } catch (error) {
+        console.error('Error fetching user data:', error.response?.data || error.message);
+      }
+    };
+
+    fetchUser();
+  }, [authToken]);
+
+
   return (
     <SafeAreaView style={styles.Container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -267,6 +296,8 @@ const Index = () => {
             </View>
           </View>
         </View>
+
+        <WeatherCard />
 
         {/* My Field Header */}
         <View style={styles.categoryHeader}>

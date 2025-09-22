@@ -34,7 +34,7 @@ const ProfileScreen = () => {
       if (!authToken) return;
 
       try {
-        const res = await axios.get('http://192.168.0.164:8000/api/user/', {
+        const res = await axios.get('http://192.168.43.142:8000/api/user/', {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
@@ -79,7 +79,7 @@ const ProfileScreen = () => {
               <Text style={styles.title}>Orders</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.card} onPress={() => router.navigate('')}>
+            <TouchableOpacity style={styles.card} onPress={() => router.navigate('/(screens)/ImgGenAIScreen')}>
               <AntDesign name="retweet" size={24} color="black" />
               <Text style={styles.title}>Recycle</Text>
             </TouchableOpacity>
