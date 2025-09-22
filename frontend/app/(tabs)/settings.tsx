@@ -34,7 +34,7 @@ const ProfileScreen = () => {
       if (!authToken) return;
 
       try {
-        const res = await axios.get('http://192.168.163.137:8000/api/user/', {
+        const res = await axios.get('http://192.168.0.164:8000/api/user/', {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },

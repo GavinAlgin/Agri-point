@@ -1,215 +1,268 @@
-import { FontAwesome5 } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
-import React, { useContext, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Dimensions,
-  StyleSheet,
   View,
+  StyleSheet,
   Text,
-  TextInput,
+  Dimensions,
+  Image,
   TouchableOpacity,
   Pressable,
-  ActivityIndicator,
-  ToastAndroid,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import axios from 'axios';
+import { StatusBar } from 'expo-status-bar';
+import { Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import PlantSuggestionList from '@/components/PlantSuggestionList';
 import { useRouter } from 'expo-router';
-import { AuthContext } from '@/utils/AuthContext';
+import IoTCard from '@/components/QuickActionsOs';
 
 const { width } = Dimensions.get('window');
 
-const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [username, setUsername] = useState();
+const greetings = [
+  { text: 'Hello', language: 'English' },
+  { text: 'Hallo', language: 'Afrikaans' },
+  { text: 'Sawubona', language: 'Zulu' },
+  { text: 'Molo', language: 'Xhosa' },
+  { text: 'Dumelang', language: 'Tswana' },
+  { text: 'Lumela', language: 'Sesotho' },
+  { text: 'Ndaa!', language: 'Venda' },
+  { text: 'Salotsha', language: 'Ndebele' },
+];
+
+const Index = () => {
+  const [index, setIndex] = useState(0);
   const router = useRouter();
-  const { login } = useContext(AuthContext);
 
-  const validateForm = (): boolean => {
-    if (!email || !password) {
-      ToastAndroid.show("Validation! Fill in all fields", ToastAndroid.SHORT);
-      // Alert.alert('Validation Error', 'Please fill in all fields.');
-      return false;
-    } else if (!username) {
-      ToastAndroid.show("Validation! Fill in all fields", ToastAndroid.SHORT);
-      return false;
-    } 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prevIndex) => (prevIndex + 1) % greetings.length);
+    }, 4000); // every 4 seconds
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      ToastAndroid.show("Invalid Email", ToastAndroid.SHORT);
-      // Alert.alert('Invalid Email', 'Please enter a valid email address.');
-      return false;
-    }
+    return () => clearInterval(interval);
+  }, []);
 
-    return true;
-  };
-
-  const handleLogin = async () => {
-    if (!validateForm()) return;
-
-    setLoading(true);
-
-    try {
-      const response = await axios.post('http://192.168.163.137:8000/api/login/', {
-        username,
-        email,
-        password,
-      });
-
-      console.log('Login success', response.data);
-      ToastAndroid.show("Login Successful!", ToastAndroid.SHORT);
-
-      const token = response.data.access; // Adjust this if the token key is different
-
-      if (token) {
-        await login(token);
-        router.push('/(tabs)');
-      } else {
-        ToastAndroid.show("No token received.", ToastAndroid.SHORT);
-      }
-
-    } catch (error: any) {
-      console.error('Login failed:', error.response?.data || error.message);
-      ToastAndroid.show(
-        "Login Failed: " + (error?.response?.data?.detail || 'An error occurred.'),
-        ToastAndroid.SHORT
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const currentGreeting = greetings[index];
 
   return (
     <SafeAreaView style={styles.Container}>
-      <View style={styles.HeaderContainer}>
-        <FontAwesome5 name="star-of-life" size={24} color="white" />
-      </View>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+          <View style={styles.Header}>
+            <View>
+              <Text style={styles.GreetingText}>Welcome {currentGreeting.text} 👋</Text>
+              <Text style={styles.HeaderSubtitle}>Smart Agriculture AI</Text>
+            </View>
+            <TouchableOpacity onPress={() => router.navigate('/settings')}>
+              <Image
+                source={{ uri: 'https://avatar.iran.liara.run/public/5' }}
+                style={styles.Avatar}
+              />
+            </TouchableOpacity>
+          </View>
 
-      <View style={styles.Content}>
-        <Text style={{ fontSize: 28, fontWeight: 'bold' }}>Welcome back,</Text>
-        <Text style={{ color: '#777', fontSize: 18 }}>
-          We’re happy to see you here. Enter your email address and password.
-        </Text>
-      </View>
+        {/* Weather Widget - Redesigned */}
+        <View style={[styles.card, styles.weatherCard]}>
+          {/* Top Row: Weather + Date + Button */}
+          <View style={styles.weatherTopRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>☀️ 28°C, Sunny</Text>
+              <Text style={styles.weatherDate}>Sep 2, 2025 — 2:45 PM</Text>
+            </View>
+            <TouchableOpacity style={styles.weatherButton}>
+              <Feather name="arrow-up-right" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
 
-      <View style={styles.loginForm}>
-        <TextInput
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          style={styles.InputBtn}
+          {/* Vertical Divider */}
+          <View style={styles.weatherDivider} />
+
+          {/* Weather Insights Row */}
+          <View style={styles.weatherInsights}>
+            <View style={styles.insightItem}>
+              <Ionicons name="water-outline" size={20} color="#555" />
+              <Text style={styles.insightText}>Humidity: 45%</Text>
+            </View>
+            <View style={styles.insightItem}>
+              <Ionicons name="leaf-outline" size={20} color="#555" />
+              <Text style={styles.insightText}>Wind: 12 km/h</Text>
+            </View>
+            <View style={styles.insightItem}>
+              <Ionicons name="sunny-outline" size={20} color="#555" />
+              <Text style={styles.insightText}>UV: Moderate</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* My Device Header */}
+        <View style={styles.categoryHeader}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Devices</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>Learn More</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        
+        <IoTCard
+          droneName="Falcon 9"
+          condition="Needs Maintenance"
+          batteryLevel={45}
+          droneImage="https://example.com/drone.jpg"
+          onPress={() => console.log('Card Pressed')}
         />
-        <TextInput
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-          keyboardType="username"
-          style={styles.InputBtn}
-        />
-        <TextInput
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          style={styles.InputBtn}
-        />
-      </View>
 
-      <View style={styles.Btns}>
-        <TouchableOpacity style={styles.LoginBtn} onPress={handleLogin} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.BtnTitle}>Login</Text>
-          )}
-        </TouchableOpacity>
+        {/* My Field Header */}
+        <View style={styles.categoryHeader}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>My Field</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>See All</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
-        <Pressable onPress={() => router.push('/(auth)/Forgot')}>
-          <Text style={styles.Forgot}>Forgot Password?</Text>
-        </Pressable>
+        {/* Category Buttons */}
+        <View style={styles.categories}>
+          <Pressable style={styles.categoryBtn}>
+            <MaterialCommunityIcons name="fruit-grapes-outline" size={26} color="black" />
+          </Pressable>
+          <Pressable style={styles.categoryBtn}>
+            <MaterialCommunityIcons name="fruit-watermelon" size={26} color="black" />
+          </Pressable>
+          <Pressable style={styles.categoryBtn}>
+            <MaterialCommunityIcons name="food-apple-outline" size={26} color="black" />
+          </Pressable>
+          <Pressable style={{ padding: 16, borderRadius: 10, backgroundColor: '#f7f7f7', width: 60, alignItems: 'center', }}>
+            <Entypo name="plus" size={26} color="black" />
+          </Pressable>
+        </View>
 
-        <View style={styles.Separator} />
+        {/* Suggestions Header */}
+        <View style={styles.suggestionsHeader}>
+          <View style={styles.sectionHeader}>
+            <FontAwesome6 name="star-of-life" size={24} color="black" />
+            <Text style={[styles.sectionTitle, { marginLeft: 10, flex: 1 }]}>Suggestions</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>See All</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
-        <TouchableOpacity style={styles.LoginBtn} onPress={() => router.push('/(auth)/Registration')}>
-          <Text style={styles.BtnTitle}>Create an Account</Text>
-        </TouchableOpacity>
-      </View>
-
-      <StatusBar style="dark" />
+        <PlantSuggestionList />
+      </ScrollView>
+      <StatusBar style='dark' />
     </SafeAreaView>
   );
 };
 
-export default Login;
-
-// admin@gmail.com
-// gadmin
-// 1234@admin
+export default Index;
 
 const styles = StyleSheet.create({
-    Container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        padding: width * 0.04,
-    },
-    HeaderContainer: {
-        padding: 12,
-        borderRadius: 10,
-        backgroundColor: '#103713',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        width: 50,
-    },
-    Content: {
-        flexDirection: 'column',
-        marginTop: 28,
-    },
-    loginForm: {
-        marginTop: 28,
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        gap: 16,
-    },
-    InputBtn: {
-        borderColor: '#ddd',
-        borderWidth: 1,
-        borderRadius: 10,
-        width:  width * 0.9,
-        height: 50,
-    },
-    Btns: {
-        flexDirection: 'column',
-        marginTop: 28,
-        gap: 18,
-    },
-    LoginBtn: {
-        padding: 12,
-        backgroundColor: '#103713',
-        borderRadius: 10,
-        alignItems: 'center'
-    },
-    BtnTitle: {
-        fontSize: 20,
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    Forgot: {
-        textAlign: 'center',
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#000',
-    },
-    Separator: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-        marginVertical: 12,
-    },
-
-})
+  Container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollContent: {
+    padding: width * 0.04,
+    paddingBottom: 60, // Add bottom padding for scroll spacing
+  },
+  Header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  GreetingText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  HeaderSubtitle: {
+    fontSize: 14,
+    color: '#333',
+  },
+  Avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 30,
+  },
+  categoryHeader: {
+    marginBottom: 10,
+  },
+  suggestionsHeader: {
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  seeAll: {
+    color: '#ccc',
+  },
+  categories: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    gap: 12,
+    marginBottom: 30,
+  },
+  categoryBtn: {
+    padding: 16,
+    borderRadius: 10,
+    backgroundColor: '#f7f7f7',
+    width: (width - 60) / 4, 
+    alignItems: 'center',
+  },
+  weatherCard: {},
+  card: {
+    padding: width * 0.04,
+    backgroundColor: '#f7f7f7',
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  weatherTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  weatherDate: {
+    fontSize: 12,
+    color: '#888',
+  },
+  weatherButton: {
+    backgroundColor: '#FFA500',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  weatherDivider: {
+    height: 1,
+    backgroundColor: '#ddd',
+    marginVertical: 10,
+  },
+  weatherInsights: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  insightItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  insightText: {
+    fontSize: 13,
+    color: '#555',
+  },
+});
