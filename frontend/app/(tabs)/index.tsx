@@ -17,6 +17,7 @@ import CropSelector from '@/components/CategoryFields';
 import axios from 'axios';
 import { AuthContext } from '@/utils/AuthContext';
 import { useRouter } from 'expo-router';
+import IoTCard from '@/components/QuickActionsOs';
 
 const { width } = Dimensions.get('window');
 
@@ -84,14 +85,6 @@ const Index = () => {
           </Text>
           <Image source={require('../../assets/images/mesh.jpg')} style={styles.Avatar} />
         </View>
-        
-        <IoTCard
-          droneName="Falcon 9"
-          condition="Needs Maintenance"
-          batteryLevel={45}
-          droneImage="https://example.com/drone.jpg"
-          onPress={() => console.log('Card Pressed')}
-        />
 
         {/* My Field Header */}
         <View style={styles.categoryHeader}>
@@ -117,6 +110,14 @@ const Index = () => {
         </View>
 
         <PlantSuggestionList />
+
+        <IoTCard
+          droneName="Falcon 9"
+          condition="Needs Maintenance"
+          batteryLevel={45}
+          droneImage="https://example.com/drone.jpg"
+          onPress={() => console.log('Card Pressed')}
+        />
 
         <View style={styles.categoryHeader}>
           <View style={styles.sectionHeader}>
