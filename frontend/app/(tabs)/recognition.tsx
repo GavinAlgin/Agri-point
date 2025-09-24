@@ -34,46 +34,78 @@ const Recognition = () => {
   const toggleDropdown = () => setDropdownVisible((prev) => !prev);
 
   const fetchAIContent = async (uri) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(`AI analyzed: ${uri.split('/').pop()}`);
-      }, 1500);
-    });
-  };
-
-  const pickImage = async () => {
-    closeSheet();
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-    });
-
-    if (!result.canceled && result.assets?.length > 0) {
-      const uri = result.assets[0].uri;
-      setLoading(true);
-
-      const aiContent = await fetchAIContent(uri);
-      setLoading(false);
-
-      setHistory((prev) => [
-        {
-          id: Date.now(),
-          image: uri,
-          content: aiContent,
-        },
-        ...prev,
-      ]);
-
-      // ✅ Fixed navigation with query
-      router.push({
-        pathname: '/(screens)/ImgGenAIScreen',
-        query: {
-          image: uri,
-          content: aiContent,
-        },
+    try {
+      const formData = new FormData();
+      formData.append('image', {
+        uri,
+        name: 'image.jpg',
+        type: 'image/jpeg',
       });
+
+      const response = await fetch('http://192.168.43.142/api/identity-crop/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Server error');
+      }
+
+      return {
+        crop_detected: data.crop_detected,
+        confidence: data.confidence,
+        raw_response: data.raw_response,
+      };
+    } catch (error) {
+      console.error('AI fetch failed:', error);
+      return {
+        crop_detected: 'Error',
+        confidence: 0,
+        raw_response: null,
+      };
     }
   };
+
+
+const pickImage = async () => {
+  closeSheet();
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    quality: 0.6, // reduce quality to avoid broken pipe
+  });
+
+  if (!result.canceled && result.assets?.length > 0) {
+    const uri = result.assets[0].uri;
+    setLoading(true);
+
+    const aiResponse = await fetchAIContent(uri);
+    setLoading(false);
+
+    setHistory((prev) => [
+      {
+        id: Date.now(),
+        image: uri,
+        content: aiResponse.crop_detected,
+      },
+      ...prev,
+    ]);
+
+    router.push({
+      pathname: '/(screens)/ImgGenAIScreen',
+      query: {
+        image: uri,
+        crop: aiResponse.crop_detected,
+        confidence: aiResponse.confidence,
+      },
+    });
+  }
+};
+
 
   const openSheet = () => {
     bottomSheetRef.current?.expand();

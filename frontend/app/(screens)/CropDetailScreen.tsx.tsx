@@ -92,8 +92,7 @@ const CorpDetailsScreen = () => {
         animationType="slide"
         transparent
         visible={isModalVisible}
-        onRequestClose={() => setIsModalVisible(false)}
-      >
+        onRequestClose={() => setIsModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setIsModalVisible(false)}>
           <Pressable style={styles.modalContent} onPress={() => {}}>
             <Text style={styles.sheetTitle}>Search Area or Place</Text>
