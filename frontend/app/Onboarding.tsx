@@ -89,7 +89,8 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   proceedButton: {
-    backgroundColor: '#000',
+    // backgroundColor: '#000',
+    backgroundColor: '#31572C',
     paddingVertical: 18,
     borderRadius: 12,
     width: '100%',

@@ -4,15 +4,15 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Dimensions, Image, TouchableOpacity, Text, View, StyleSheet, Pressable, ScrollView, ToastAndroid } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { clearToken } from '@/utils/tokenStorage';
-import { AuthContext } from '@/utils/AuthContext';
 import axios from 'axios';
+import { useAuth } from '@/utils/AuthContext';
 
 const { width, height } = Dimensions.get('window');
 
 const ProfileScreen = () => {
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const { authToken, loading } = useContext(AuthContext);
+  const { logout, isAuthenticated } = useAuth();
 
   const handleLogout = async () => {
     await clearToken();
@@ -21,22 +21,15 @@ const ProfileScreen = () => {
     ToastAndroid.show("Successfully logged", ToastAndroid.SHORT);
   };
 
-  // Redirect to login if token is missing
-  useEffect(() => {
-    if (!loading && !authToken) {
-      router.replace('/(auth)/Login');
-    }
-  }, [authToken, loading]);
-
   // Fetch logged-in user data
   useEffect(() => {
     const fetchUser = async () => {
-      if (!authToken) return;
+      if (!isAuthenticated) return;
 
       try {
         const res = await axios.get('http://192.168.43.142:8000/api/user/', {
           headers: {
-            Authorization: `Bearer ${authToken}`,
+            Authorization: `Bearer ${isAuthenticated}`,
           },
         });
         setUser(res.data);
@@ -47,7 +40,7 @@ const ProfileScreen = () => {
     };
 
     fetchUser();
-  }, [authToken]);
+  }, [isAuthenticated]);
 
   return (
     <SafeAreaView style={styles.container}>
