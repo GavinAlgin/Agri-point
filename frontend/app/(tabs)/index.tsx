@@ -132,7 +132,7 @@ const Index = () => {
 
         {/* Category Buttons */}
         <View style={styles.categories}>
-          <Pressable style={styles.categoryBtn}>
+          <Pressable style={styles.categoryBtn} onPress={() => router.push('/(screens)/EducateScreen')}>
             <MaterialCommunityIcons name="fruit-grapes-outline" size={26} color="black" />
           </Pressable>
           <Pressable style={styles.categoryBtn}>
@@ -157,8 +157,8 @@ const Index = () => {
         </View>
 
         <IoTCard
-          onDevicesPress={() => Alert.alert('Devices clicked')}
-          onLocationPress={() => Alert.alert('Location clicked')}
+          onDevicesPress={() => Alert.alert('Device Connected')}
+          onLocationPress={() => Alert.alert('Do you wanna switch off live location')}
           onAIPress={() => Alert.alert('AI clicked')}
         />
 
