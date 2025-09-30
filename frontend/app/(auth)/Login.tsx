@@ -84,10 +84,14 @@ const Login = () => {
     ToastAndroid.show('Google Auth Coming Soon!', ToastAndroid.SHORT);
   };
 
+  const handleForgot = async () => {
+    router.push('/(tabs)');
+  };
+
   return (
     <SafeAreaView style={styles.Container}>
       <View style={styles.HeaderContainer}>
-        <FontAwesome5 name="sign-in-alt" size={24} color="white" />
+        <FontAwesome5 name="star-of-life" size={24} color="white" />
       </View>
 
       <View style={styles.Content}>
@@ -122,6 +126,10 @@ const Login = () => {
           ) : (
             <Text style={styles.BtnTitle}>Login</Text>
           )}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={handleForgot}>
+          <Text>Forgot Password?</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.LoginBtn} onPress={handleOAuth} disabled={loading}>

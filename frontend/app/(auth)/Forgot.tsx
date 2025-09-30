@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../server/api';
 import { useRouter } from 'expo-router';
 import BottomSheet from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const { width } = Dimensions.get('window');
 
@@ -72,85 +73,87 @@ const Forgot = () => {
 
   return (
     <SafeAreaView style={styles.Container}>
-      <View style={styles.HeaderContainer}>
-        <FontAwesome5 name="star-of-life" size={24} color="white" />
-      </View>
+      <GestureHandlerRootView>
+        <View style={styles.HeaderContainer}>
+          <FontAwesome5 name="star-of-life" size={24} color="white" />
+        </View>
 
-      <View style={styles.Content}>
-        <Text style={{ fontSize: 28, fontWeight: 'bold' }}>Reset Password,</Text>
-        <Text style={{ color: '#777', fontSize: 18 }}>
-          Enter your email and we&apos;ll send you a reset link. Then paste the UID and Token below.
-        </Text>
-      </View>
+        <View style={styles.Content}>
+          <Text style={{ fontSize: 28, fontWeight: 'bold' }}>Reset Password,</Text>
+          <Text style={{ color: '#777', fontSize: 18 }}>
+            Enter your email and we&apos;ll send you a reset link. Then paste the UID and Token below.
+          </Text>
+        </View>
 
-      <View style={styles.loginForm}>
-        <TextInput
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          style={styles.InputBtn}
-        />
-      </View>
-
-      <View style={styles.Btns}>
-        <TouchableOpacity style={styles.LoginBtn} onPress={handleSendResetEmail}>
-          <Text style={styles.BtnTitle}>Send Reset Link</Text>
-        </TouchableOpacity>
-
-        <View style={styles.Separator} />
-
-        <TouchableOpacity style={styles.LoginBtn} onPress={() => router.push('/(auth)/Login')}>
-          <Text style={styles.BtnTitle}>Back to Login</Text>
-        </TouchableOpacity>
-      </View>
-
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={-1}
-        snapPoints={snapPoints}
-        enablePanDownToClose
-      >
-        <View style={{ padding: 16 }}>
-          <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>Reset Password</Text>
-
+        <View style={styles.loginForm}>
           <TextInput
-            placeholder="UID"
-            value={uid}
-            onChangeText={setUid}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
             style={styles.InputBtn}
           />
-          <TextInput
-            placeholder="Token"
-            value={token}
-            onChangeText={setToken}
-            style={styles.InputBtn}
-          />
-          <TextInput
-            placeholder="New Password"
-            secureTextEntry
-            value={newPassword}
-            onChangeText={setNewPassword}
-            style={styles.InputBtn}
-          />
-          <TextInput
-            placeholder="Confirm Password"
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            style={styles.InputBtn}
-          />
+        </View>
 
-          <TouchableOpacity style={styles.LoginBtn} onPress={handleResetPassword} disabled={loading}>
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.BtnTitle}>Reset Password</Text>
-            )}
+        <View style={styles.Btns}>
+          <TouchableOpacity style={styles.LoginBtn} onPress={handleSendResetEmail}>
+            <Text style={styles.BtnTitle}>Send Reset Link</Text>
+          </TouchableOpacity>
+
+          <View style={styles.Separator} />
+
+          <TouchableOpacity style={styles.LoginBtn} onPress={() => router.push('/(auth)/Login')}>
+            <Text style={styles.BtnTitle}>Back to Login</Text>
           </TouchableOpacity>
         </View>
-      </BottomSheet>
+
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={-1}
+          snapPoints={snapPoints}
+          enablePanDownToClose
+        >
+          <View style={{ padding: 16 }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>Reset Password</Text>
+
+            <TextInput
+              placeholder="UID"
+              value={uid}
+              onChangeText={setUid}
+              style={styles.InputBtn}
+            />
+            <TextInput
+              placeholder="Token"
+              value={token}
+              onChangeText={setToken}
+              style={styles.InputBtn}
+            />
+            <TextInput
+              placeholder="New Password"
+              secureTextEntry
+              value={newPassword}
+              onChangeText={setNewPassword}
+              style={styles.InputBtn}
+            />
+            <TextInput
+              placeholder="Confirm Password"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              style={styles.InputBtn}
+            />
+
+            <TouchableOpacity style={styles.LoginBtn} onPress={handleResetPassword} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.BtnTitle}>Reset Password</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </BottomSheet>
+      </GestureHandlerRootView>
 
       <StatusBar style="dark" />
     </SafeAreaView>

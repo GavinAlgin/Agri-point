@@ -11,10 +11,9 @@ import {
   Alert,
   ActivityIndicator,
   ToastAndroid,
-  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import axios from 'axios';
+import api from '../server/api';
 import { Link, useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
@@ -38,19 +37,16 @@ const Register = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       ToastAndroid.show("Invalid email address.", ToastAndroid.SHORT);
-      // Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return false;
     }
 
     if (password.length < 6) {
       ToastAndroid.show("Weak password, make atleast 8 characters.", ToastAndroid.SHORT);
-      // Alert.alert('Weak Password', 'Password must be at least 6 characters.');
       return false;
     }
 
     if (password !== confirmPassword) {
       ToastAndroid.show("Password Mismatch", ToastAndroid.SHORT);
-      // Alert.alert('Password Mismatch', 'Passwords do not match.');
       return false;
     }
 
@@ -63,10 +59,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://192.168.220.137:8000/api/register/', {
-        firstname,
-        lastname,
-      const response = await axios.post('http://192.168.163.137:8000/api/register/', {
+      const response = await api.post('/register/', {
         email,
         username,
         password,
@@ -74,15 +67,13 @@ const Register = () => {
 
       console.log('Registration successful:', response.data);
       ToastAndroid.show("Success! Account created", ToastAndroid.SHORT);
-      // Alert.alert('Success', 'Account created successfully.');
-      // Optionally navigate to login screen
+      router.push('/(auth)/Login'); // re-route to login if registation success
     } catch (error: any) {
       console.error('Registration failed:', error.response?.data || error.message);
       ToastAndroid.show(
         "Registration Unsuccessful: " + (error?.response?.data?.detail || 'An error occurred.'),
         ToastAndroid.SHORT
       );
-      // Alert.alert('Registration Failed', error.response?.data?.detail || 'An error occurred.');
     } finally {
       setLoading(false);
     }

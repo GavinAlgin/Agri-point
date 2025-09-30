@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LineChart } from 'react-native-chart-kit';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import Header from '@/components/CustomHeader';
 
 const mockWeather = {
   city: 'New York',
@@ -54,94 +57,98 @@ export default function App() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header Weather Display */}
-      <View style={styles.header}>
-        <Text style={styles.city}>{mockWeather.city}</Text>
-        <Text style={styles.temp}>{mockWeather.temp}°C - {mockWeather.condition}</Text>
-      </View>
-
-      {/* Alert Card */}
-      <View style={styles.alertCard}>
-        <Text style={styles.alertText}>⚠️ {mockAlert}</Text>
-      </View>
-
-      {/* Weekly Forecast */}
-      <View style={styles.widget}>
-        <Text style={styles.widgetTitle}>📅 Weekly Forecast</Text>
-        <View style={styles.weekContainer}>
-          {mockForecast.map((day, idx) => (
-            <View key={idx} style={styles.dayBlock}>
-              <Text>{day.name}</Text>
-              <Text style={{ fontSize: 24 }}>{day.icon}</Text>
-            </View>
-          ))}
+    <SafeAreaView>
+      <ScrollView style={styles.container}>
+        <Header title="WeatherCast" />
+        {/* Header Weather Display */}
+        <View style={styles.header}>
+          <Text style={styles.city}>{mockWeather.city}</Text>
+          <Text style={styles.temp}>{mockWeather.temp}°C - {mockWeather.condition}</Text>
         </View>
-      </View>
 
-      {/* Rain Forecast Graph */}
-      <View style={styles.widget}>
-        <Text style={styles.widgetTitle}>🌧 Rain Forecast</Text>
-        <LineChart
-          data={{
-            labels: mockRainData.map(item => item.time),
-            datasets: [{ data: mockRainData.map(item => item.percentage) }],
-          }}
-          width={Dimensions.get('window').width - 40}
-          height={220}
-          chartConfig={{
-            backgroundGradientFrom: '#fff',
-            backgroundGradientTo: '#fff',
-            decimalPlaces: 0,
-            color: () => '#000',
-            labelColor: () => '#000',
-            style: {
+        {/* Alert Card */}
+        <View style={styles.alertCard}>
+          <Text style={styles.alertText}>⚠️ {mockAlert}</Text>
+        </View>
+
+        {/* Weekly Forecast */}
+        <View style={styles.widget}>
+          <Text style={styles.widgetTitle}>📅 Weekly Forecast</Text>
+          <View style={styles.weekContainer}>
+            {mockForecast.map((day, idx) => (
+              <View key={idx} style={styles.dayBlock}>
+                <Text>{day.name}</Text>
+                <Text style={{ fontSize: 24 }}>{day.icon}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Rain Forecast Graph */}
+        <View style={styles.widget}>
+          <Text style={styles.widgetTitle}>🌧 Rain Forecast</Text>
+          <LineChart
+            data={{
+              labels: mockRainData.map(item => item.time),
+              datasets: [{ data: mockRainData.map(item => item.percentage) }],
+            }}
+            width={Dimensions.get('window').width - 40}
+            height={220}
+            chartConfig={{
+              backgroundGradientFrom: '#fff',
+              backgroundGradientTo: '#fff',
+              decimalPlaces: 0,
+              color: () => '#000',
+              labelColor: () => '#000',
+              style: {
+                borderRadius: 16,
+              },
+              propsForDots: {
+                r: '4',
+                strokeWidth: '2',
+                stroke: '#555',
+              },
+            }}
+            style={{
+              marginVertical: 8,
               borderRadius: 16,
-            },
-            propsForDots: {
-              r: '4',
-              strokeWidth: '2',
-              stroke: '#555',
-            },
-          }}
-          style={{
-            marginVertical: 8,
-            borderRadius: 16,
-          }}
-        />
-      </View>
+            }}
+          />
+        </View>
 
-      {/* Prediction Widget */}
-      <View style={styles.widget}>
-        <Text style={styles.widgetTitle}>📅 Predict Weather</Text>
-        <View style={{ marginBottom: 10 }}>
-          {Platform.OS === 'ios' || showPicker ? (
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display="default"
-              onChange={(event, selectedDate) => {
-                setShowPicker(false);
-                setDate(selectedDate || date);
-              }}
-            />
-          ) : (
-            <Button title="Pick a Date" onPress={() => setShowPicker(true)} />
+        {/* Prediction Widget */}
+        <View style={styles.widget}>
+          <Text style={styles.widgetTitle}>📅 Predict Weather</Text>
+          <View style={{ marginBottom: 10 }}>
+            {Platform.OS === 'ios' || showPicker ? (
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowPicker(false);
+                  setDate(selectedDate || date);
+                }}
+              />
+            ) : (
+              <Button title="Pick a Date" onPress={() => setShowPicker(true)} />
+            )}
+          </View>
+          <Button title="Get Prediction" onPress={handlePredict} />
+          {prediction && (
+            <View style={styles.predictionBox}>
+              <Text style={styles.predictionText}>
+                Prediction for {prediction.date}:
+              </Text>
+              <Text style={styles.predictionText}>
+                {prediction.temp}°C - {prediction.condition}
+              </Text>
+            </View>
           )}
         </View>
-        <Button title="Get Prediction" onPress={handlePredict} />
-        {prediction && (
-          <View style={styles.predictionBox}>
-            <Text style={styles.predictionText}>
-              Prediction for {prediction.date}:
-            </Text>
-            <Text style={styles.predictionText}>
-              {prediction.temp}°C - {prediction.condition}
-            </Text>
-          </View>
-        )}
-      </View>
-    </ScrollView>
+      </ScrollView>
+      <StatusBar style='dark' />
+    </SafeAreaView>
   );
 }
 
