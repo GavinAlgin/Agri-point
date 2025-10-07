@@ -1,19 +1,8 @@
-// screens/Market.js
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Image,
-  TouchableOpacity,
-  TextInput,
-  Dimensions,
-  Modal,
-  Pressable,
-} from 'react-native';
+import { View, Text, StyleSheet, Dimensions, FlatList, TouchableOpacity, Image, TextInput, ImageBackground } from 'react-native';
+import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather, Fontisto, Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 const { width, height } = Dimensions.get('window');
@@ -24,8 +13,7 @@ const vendors = [
     name: 'The Veggie Guy – Kgapane Phillip',
     category: 'Vegetable & Boer Goat Supplier (Burgersfort)',
     icon: require('@/assets/images/Maano-Khodani.jpg'),
-    description:
-      'Runs a local farm in Mafarafara, supplying Joburg Market, Spar, Nando’s, and rearing prize Boer goats.',
+    description: 'Runs a local farm in Mafarafara, supplying Joburg Market, Spar, Nando’s, and rearing prize Boer goats.',
     interest: 'Butternut, Mixed Vegetables, Boer goats',
   },
   {
@@ -54,14 +42,36 @@ const vendors = [
   },
 ];
 
+const services = [
+  {
+    title: 'Seeds',
+    image: require('@/assets/images/mesh.jpg'),
+  },
+  {
+    title: 'Seedlings',
+    image: require('@/assets/images/mesh.jpg'),
+  },
+  {
+    title: 'Machinery',
+    image: require('@/assets/images/mesh.jpg'),
+  },
+  {
+    title: 'Hire Worker',
+    image: require('@/assets/images/mesh.jpg'),
+  },
+  {
+    title: 'Cultivation process',
+    image: require('@/assets/images/mesh.jpg'),
+  },
+  {
+    title: 'Crop disease solution',
+    image: require('@/assets/images/mesh.jpg'),
+  },
+];
 
-const Market = () => {
-  const [dropdownVisible, setDropdownVisible] = useState(false);
+const MarketRoute = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredVendors, setFilteredVendors] = useState(vendors);
-
-  const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
-
   const router = useRouter();
 
   const handleSearch = () => {
@@ -74,31 +84,7 @@ const Market = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Explore</Text>
-
-        {/* Dropdown Button */}
-        <View style={{ position: 'relative' }}>
-          <TouchableOpacity onPress={toggleDropdown} style={{ marginRight: 12, padding: 12, borderRadius: 10, backgroundColor: '#f7f7f7', }}>
-            <Ionicons name='ellipsis-vertical' size={20} color='black' />
-          </TouchableOpacity>
-
-          {dropdownVisible && (
-            <View style={styles.dropdown}>
-              <TouchableOpacity style={styles.dropdownItem} onPress={() => router.push('/(screens)/OrderScreen')}>
-                <Text>Orders</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.dropdownItem}>
-                <Text>Send Invite</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      </View>
-
-      {/* Search and Filter */}
+    <View style={styles.scene}>
       <View style={styles.searchContainer}>
         <TextInput
           placeholder="Search vendor or interest..."
@@ -112,49 +98,119 @@ const Market = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={{padding: width * 0.04}}>
-        <View style={{ padding: width * 0.04, borderRadius: 12, width: 380, backgroundColor: 'lightyellow', alignItems: 'center', flexDirection: 'row', gap: 10, }}>
-          <Feather name="alert-triangle" size={24} color="orange" />
-          <Text style={{ fontSize: 12, }}>Alert! the SME&apos;s displayed are ones registered to the agri-point registration forum.</Text>
-        </View>
-      </View>
-
-      {/* Vendor List */}
       <FlatList
         data={filteredVendors}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() =>
-                router.push({
-                  pathname: '/(screens)/VendorDetailScreen',
-                  params: { vendor: JSON.stringify(item) },
-                })
-              }
-            >
-              <View style={styles.card}>
-                <Image source={item.icon} style={styles.cardImage} />
-                <View style={styles.cardContent}>
-                  <Text style={styles.name}>{item.name}</Text>
-                  <Text style={styles.category}>{item.category}</Text>
-                  <Text style={styles.interest}>{item.interest}</Text>
-                </View>
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() =>
+              router.push({
+                pathname: '/(screens)/VendorDetailScreen',
+                params: { vendor: JSON.stringify(item) },
+              })
+            }
+          >
+            <View style={styles.card}>
+              <Image source={item.icon} style={styles.cardImage} />
+              <View style={styles.cardContent}>
+                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.category}>{item.category}</Text>
+                <Text style={styles.interest}>{item.interest}</Text>
               </View>
-            </TouchableOpacity>
-          )}
-
+            </View>
+          </TouchableOpacity>
+        )}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
-export default Market;
+const ServicesRoute = () => (
+  <FlatList
+    data={services}
+    keyExtractor={(item) => item.title}
+    numColumns={2}
+    contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 10 }}
+    renderItem={({ item }) => (
+      <TouchableOpacity style={styles.serviceCard}>
+        <ImageBackground source={item.image} style={styles.image} imageStyle={{ borderRadius: 10 }}>
+          <View style={styles.overlay}>
+            <Text style={styles.text}>{item.title}</Text>
+          </View>
+        </ImageBackground>
+      </TouchableOpacity>
+    )}
+  />
+);
+
+export default function MarketAndServices() {
+  const [index, setIndex] = useState(0);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [routes] = useState([
+    { key: 'market', title: 'Market' },
+    { key: 'services', title: 'Services' },
+  ]);
+
+  const toggleDropdown = () => setDropdownVisible((prev) => !prev);
+
+  const renderScene = SceneMap({
+    market: MarketRoute,
+    services: ServicesRoute,
+  });
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      {/* Header */}
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerText}>Market</Text>
+          <View style={{ position: 'relative' }}>
+            <TouchableOpacity
+              onPress={toggleDropdown}
+              style={styles.iconButton}>
+              <Ionicons name="ellipsis-vertical" size={20} color="black" />
+            </TouchableOpacity>
+
+            {dropdownVisible && (
+              <View style={styles.dropdown}>
+                <TouchableOpacity style={styles.dropdownItem}>
+                  <Text>Share</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.dropdownItem}>
+                  <Text>Report</Text>
+                </TouchableOpacity>
+              </View>
+          )}
+        </View>
+      </View>
+      <TabView
+        navigationState={{ index, routes }}
+        renderScene={renderScene}
+        onIndexChange={setIndex}
+        initialLayout={{ width }}
+        renderTabBar={props => (
+          <TabBar
+            {...props}
+            indicatorStyle={{ backgroundColor: '#000' }}
+            style={{ backgroundColor: '#fff' }}
+            labelStyle={{ color: '#000', fontWeight: 'bold' }}
+          />
+        )}
+      />
+    </SafeAreaView>
+  );
+}
 
 const styles = StyleSheet.create({
-  container: {
+  scene: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: '#fff',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginVertical: 10,
   },
   headerContainer: {
     flexDirection: 'row',
@@ -166,6 +222,12 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 28,
     fontWeight: 'bold',
+  },
+  iconButton: {
+    marginRight: 12,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#f7f7f7',
   },
   dropdown: {
     position: 'absolute',
@@ -185,12 +247,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 16,
-    marginBottom: 8,
-  },
   searchInput: {
     flex: 1,
     height: 40,
@@ -207,7 +263,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   list: {
-    padding: 16,
+    paddingHorizontal: 16,
   },
   card: {
     backgroundColor: '#fff',
@@ -245,5 +301,28 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
     alignSelf: 'flex-start',
+  },
+  serviceCard: {
+    width: width / 2 - 20,
+    height: 140,
+    margin: 8,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  image: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  overlay: {
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+  },
+  text: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 });
