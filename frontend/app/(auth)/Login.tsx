@@ -10,6 +10,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ToastAndroid,
+  Platform,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, useRouter } from 'expo-router';
@@ -27,18 +29,34 @@ const Login = () => {
 
   const validateForm = (): boolean => {
     if (!email || !password) {
-      ToastAndroid.show("Validation Error, Please fill in all fields", ToastAndroid.SHORT);
+      // ToastAndroid.show("Validation Error, Please fill in all fields", ToastAndroid.SHORT);
+      if (Platform.OS === "android") {
+        ToastAndroid.show("Validation Error, Please fill in all fields", ToastAndroid.SHORT);
+      } else {
+        Alert.alert("Validation Error", "Please fill in all fields");
+      }
+
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      ToastAndroid.show("Invalid email address.", ToastAndroid.SHORT);
+      // ToastAndroid.show("Invalid email address.", ToastAndroid.SHORT);
+      if (Platform.OS === "android") {
+        ToastAndroid.show("Invalid email address.", ToastAndroid.SHORT);
+      } else {
+        Alert.alert("Error", "Invalid email address.");
+      }
       return false;
     }
 
     if (password.length < 6) {
-      ToastAndroid.show("Password too short.", ToastAndroid.SHORT);
+      // ToastAndroid.show("Password too short.", ToastAndroid.SHORT);
+      if (Platform.OS === "android") {
+        ToastAndroid.show("Password too short.", ToastAndroid.SHORT);
+      } else {
+        Alert.alert("Error", "Password too short.");
+      }
       return false;
     }
 
@@ -67,21 +85,39 @@ const Login = () => {
       // await AsyncStorage.setItem('userToken', token);
       await login(token);
 
-      ToastAndroid.show("Login Successful", ToastAndroid.SHORT);
+      // ToastAndroid.show("Login Successful", ToastAndroid.SHORT);
+      if (Platform.OS === "android") {
+        ToastAndroid.show("Login Successful", ToastAndroid.SHORT);
+      } else {
+        Alert.alert("Welcome", "Login Successful");
+      }
       router.replace('/(tabs)'); // Adjust route as needed
     } catch (error: any) {
       console.error('Login failed:', error.response?.data || error.message);
-      ToastAndroid.show(
+      // ToastAndroid.show(
+      //   "Login Failed: " + (error?.response?.data?.detail || 'An error occurred.'),
+      //   ToastAndroid.SHORT
+      // );
+      if (Platform.OS === "android") {
+        ToastAndroid.show(
         "Login Failed: " + (error?.response?.data?.detail || 'An error occurred.'),
         ToastAndroid.SHORT
       );
+      } else {
+        Alert.alert("Login Failed", "An error occurred.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleOAuth = async () => {
-    ToastAndroid.show('Google Auth Coming Soon!', ToastAndroid.SHORT);
+    // ToastAndroid.show('Google Auth Coming Soon!', ToastAndroid.SHORT);
+    if (Platform.OS === "android") {
+      ToastAndroid.show('Google Auth Coming Soon!', ToastAndroid.SHORT);
+    } else {
+      Alert.alert("Notice", "Google Auth Coming Soon!");
+    }
   };
 
   const handleForgot = async () => {

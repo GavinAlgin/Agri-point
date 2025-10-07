@@ -3,7 +3,7 @@ import axios from 'axios';
 import { getToken, } from '../../utils/tokenStorage';
 
 const instance = axios.create({
-  baseURL: 'http://192.168.163.137:8000/api',
+  baseURL: 'http://192.168.0.126:8000/api',
   headers: {
     'Content-Type' : 'application/json',
   },
