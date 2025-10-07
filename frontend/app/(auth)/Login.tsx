@@ -22,6 +22,7 @@ const { width } = Dimensions.get('window');
 
 const Login = () => {
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -71,6 +72,7 @@ const Login = () => {
     try {
       const response = await api.post('/login/', {
         email,
+        username,
         password,
       });
 
@@ -144,6 +146,13 @@ const Login = () => {
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
+          style={styles.InputBtn}
+        />
+        <TextInput
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
           style={styles.InputBtn}
         />
         <TextInput
