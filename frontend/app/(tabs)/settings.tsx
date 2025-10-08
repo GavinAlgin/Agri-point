@@ -4,8 +4,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Dimensions, Image, TouchableOpacity, Text, View, StyleSheet, Pressable, ScrollView, ToastAndroid } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { clearToken } from '@/utils/tokenStorage';
-import axios from 'axios';
 import { useAuth } from '@/utils/AuthContext';
+import api from '../server/api';
 
 const { width, height } = Dimensions.get('window');
 
@@ -27,7 +27,7 @@ const ProfileScreen = () => {
       if (!isAuthenticated) return;
 
       try {
-        const res = await axios.get('http://192.168.43.142:8000/api/user/', {
+        const res = await api.get('/api/user/', {
           headers: {
             Authorization: `Bearer ${isAuthenticated}`,
           },

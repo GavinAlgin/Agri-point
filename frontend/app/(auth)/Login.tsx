@@ -21,14 +21,15 @@ import api from '../server/api';
 const { width } = Dimensions.get('window');
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  // const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
 
   const validateForm = (): boolean => {
-    if (!email || !password) {
+    if (!username || !password) {
       // ToastAndroid.show("Validation Error, Please fill in all fields", ToastAndroid.SHORT);
       if (Platform.OS === "android") {
         ToastAndroid.show("Validation Error, Please fill in all fields", ToastAndroid.SHORT);
@@ -39,16 +40,16 @@ const Login = () => {
       return false;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      // ToastAndroid.show("Invalid email address.", ToastAndroid.SHORT);
-      if (Platform.OS === "android") {
-        ToastAndroid.show("Invalid email address.", ToastAndroid.SHORT);
-      } else {
-        Alert.alert("Error", "Invalid email address.");
-      }
-      return false;
-    }
+    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // if (!emailRegex.test(email)) {
+    //   // ToastAndroid.show("Invalid email address.", ToastAndroid.SHORT);
+    //   if (Platform.OS === "android") {
+    //     ToastAndroid.show("Invalid email address.", ToastAndroid.SHORT);
+    //   } else {
+    //     Alert.alert("Error", "Invalid email address.");
+    //   }
+    //   return false;
+    // }
 
     if (password.length < 6) {
       // ToastAndroid.show("Password too short.", ToastAndroid.SHORT);
@@ -70,7 +71,8 @@ const Login = () => {
 
     try {
       const response = await api.post('/login/', {
-        email,
+        // email,
+        username,
         password,
       });
 
@@ -138,12 +140,19 @@ const Login = () => {
       </View>
 
       <View style={styles.loginForm}>
-        <TextInput
+        {/* <TextInput
           placeholder="Email"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
+          style={styles.InputBtn}
+        /> */}
+        <TextInput
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
           style={styles.InputBtn}
         />
         <TextInput

@@ -16,6 +16,8 @@ import { Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons } from 
 import PlantSuggestionList from '@/components/PlantSuggestionList';
 import { useRouter } from 'expo-router';
 import IoTCard from '@/components/QuickActionsOs';
+import { useAuth } from '@/utils/AuthContext';
+import api from '../server/api';
 
 const { width } = Dimensions.get('window');
 
@@ -33,6 +35,9 @@ const greetings = [
 const Index = () => {
   const [index, setIndex] = useState(0);
   const router = useRouter();
+  const [user, setUser] = useState(null);
+  const { isAuthenticated } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -44,33 +49,33 @@ const Index = () => {
 
   const currentGreeting = greetings[index];
 
-  // // Redirect to login if token is missing
-  // useEffect(() => {
-  //   if (!loading && !authToken) {
-  //     router.replace('/(auth)/Login');
-  //   }
-  // }, [authToken, loading]);
+  // Redirect to login if token is missing
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.replace('/(auth)/Login');
+    }
+  }, [isAuthenticated, loading]);
 
-  // // Fetch logged-in user data
-  // useEffect(() => {
-  //   const fetchUser = async () => {
-  //     if (!authToken) return;
+  // Fetch logged-in user data
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!isAuthenticated) return;
 
-  //     try {
-  //       const res = await axios.get('http://192.168.43.142:8000/api/user/', {
-  //         headers: {
-  //           Authorization: `Bearer ${authToken}`,
-  //         },
-  //       });
-  //       setUser(res.data);
-  //       console.log('User loaded:', res.data);
-  //     } catch (error) {
-  //       console.error('Error fetching user data:', error.response?.data || error.message);
-  //     }
-  //   };
+      try {
+        const res = await api.get('/api/user/', {
+          headers: {
+            Authorization: `Bearer ${isAuthenticated}`,
+          },
+        });
+        setUser(res.data);
+        console.log('User loaded:', res.data);
+      } catch (error) {
+        console.error('Error fetching user data:', error.response?.data || error.message);
+      }
+    };
 
-  //   fetchUser();
-  // }, [authToken]);
+    fetchUser();
+  }, [isAuthenticated]);
 
 
   return (
