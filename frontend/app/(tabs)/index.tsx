@@ -50,11 +50,11 @@ const Index = () => {
   const currentGreeting = greetings[index];
 
   // Redirect to login if token is missing
-  useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      return <LoadingActivity>{}</LoadingActivity>
-    }
-  }, [isAuthenticated, loading]);
+  // useEffect(() => {
+  //   if (!loading && !isAuthenticated) {
+  //     return <LoadingActivity>{}</LoadingActivity>
+  //   }
+  // }, [isAuthenticated, load ing]);
 
   // Fetch logged-in user data
   useEffect(() => {
