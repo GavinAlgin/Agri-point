@@ -52,7 +52,7 @@ const Index = () => {
   // Redirect to login if token is missing
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.replace('/(auth)/Login');
+      return <LoadingActivity>{}</LoadingActivity>
     }
   }, [isAuthenticated, loading]);
 
@@ -62,7 +62,7 @@ const Index = () => {
       if (!isAuthenticated) return;
 
       try {
-        const res = await api.get('/api/user/', {
+        const res = await api.get('/user/', {
           headers: {
             Authorization: `Bearer ${isAuthenticated}`,
           },
