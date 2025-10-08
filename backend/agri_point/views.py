@@ -183,10 +183,10 @@ class LivestockViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    # def perform_create(self, serializer):
+    #     serializer.save(user=self.request.user)
 
 
 class RoleViewSet(viewsets.ModelViewSet):
