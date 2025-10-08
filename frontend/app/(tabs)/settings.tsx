@@ -9,9 +9,14 @@ import api from '../server/api';
 
 const { width, height } = Dimensions.get('window');
 
+type User = { 
+  email: string;
+  username: string;
+} 
+
 const ProfileScreen = () => {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const { logout, isAuthenticated } = useAuth();
 
   const handleLogout = async () => {
@@ -27,7 +32,7 @@ const ProfileScreen = () => {
       if (!isAuthenticated) return;
 
       try {
-        const res = await api.get('/api/user/', {
+        const res = await api.get('/user/', {
           headers: {
             Authorization: `Bearer ${isAuthenticated}`,
           },
