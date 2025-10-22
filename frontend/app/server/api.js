@@ -1,9 +1,9 @@
 //axios base config
 import axios from 'axios';
-import { getToken } from '../utils/tokenStorage';
+import { getToken, } from '../../utils/tokenStorage';
 
 const instance = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: 'http://172.20.10.4:8000/api',
   headers: {
     'Content-Type' : 'application/json',
   },

@@ -1,6 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import React, { useContext, useState } from 'react';
+import React, { useState, useRef, useMemo, } from 'react';
 import {
   Dimensions,
   StyleSheet,
@@ -8,73 +8,62 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Pressable,
   ActivityIndicator,
   ToastAndroid,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import axios from 'axios';
+import api from '../server/api';
 import { useRouter } from 'expo-router';
-import { AuthContext } from '@/utils/AuthContext';
+import BottomSheet from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const { width } = Dimensions.get('window');
 
 const Forgot = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [uid, setUid] = useState('');
+  const [token, setToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [username, setUsername] = useState();
+
   const router = useRouter();
-  const { login } = useContext(AuthContext);
 
-  const validateForm = (): boolean => {
-    if (!email || !password) {
-      ToastAndroid.show("Validation! Fill in all fields", ToastAndroid.SHORT);
-      // Alert.alert('Validation Error', 'Please fill in all fields.');
-      return false;
-    } else if (!username) {
-      ToastAndroid.show("Validation! Fill in all fields", ToastAndroid.SHORT);
-      return false;
-    } 
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = useMemo(() => ['40%', '70%'], []);
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      ToastAndroid.show("Invalid Email", ToastAndroid.SHORT);
-      // Alert.alert('Invalid Email', 'Please enter a valid email address.');
-      return false;
+  const handleSendResetEmail = async () => {
+    try {
+      await api.post('/auth/password/reset/', { email });
+      ToastAndroid.show("Reset email sent. Check your inbox.", ToastAndroid.SHORT);
+      bottomSheetRef.current?.expand();
+    } catch (err: any) {
+      console.error(err);
+      ToastAndroid.show('Error: ' + (err?.response?.data?.detail || 'Something went wrong'), ToastAndroid.SHORT);
     }
-
-    return true;
   };
 
-  const handleLogin = async () => {
-    if (!validateForm()) return;
-
-    setLoading(true);
+  const handleResetPassword = async () => {
+    if (newPassword !== confirmPassword) {
+      ToastAndroid.show('Passwords do not match', ToastAndroid.SHORT);
+      return;
+    }
 
     try {
-      const response = await axios.post('http://192.168.177.137:8000/api/login/', {
-        username,
-        email,
-        password,
+      setLoading(true);
+      await api.post('/auth/password/reset/confirm/', {
+        uid,
+        token,
+        new_password1: newPassword,
+        new_password2: confirmPassword,
       });
-
-      console.log('Login success', response.data);
-      ToastAndroid.show("Login Successful!", ToastAndroid.SHORT);
-
-      const token = response.data.access; // Adjust this if the token key is different
-
-      if (token) {
-        await login(token);
-        router.push('/(tabs)');
-      } else {
-        ToastAndroid.show("No token received.", ToastAndroid.SHORT);
-      }
-
-    } catch (error: any) {
-      console.error('Login failed:', error.response?.data || error.message);
+      ToastAndroid.show("Password reset successful.", ToastAndroid.SHORT);
+      bottomSheetRef.current?.close();
+      router.push('/(auth)/Login');
+    } catch (err: any) {
+      console.error(err);
       ToastAndroid.show(
-        "Login Failed: " + (error?.response?.data?.detail || 'An error occurred.'),
+        'Error: ' + (err?.response?.data?.detail || 'Reset failed'),
         ToastAndroid.SHORT
       );
     } finally {
@@ -82,53 +71,89 @@ const Forgot = () => {
     }
   };
 
-
   return (
     <SafeAreaView style={styles.Container}>
-      <View style={styles.HeaderContainer}>
-        <FontAwesome5 name="star-of-life" size={24} color="white" />
-      </View>
+      <GestureHandlerRootView>
+        <View style={styles.HeaderContainer}>
+          <FontAwesome5 name="star-of-life" size={24} color="white" />
+        </View>
 
-      <View style={styles.Content}>
-        <Text style={{ fontSize: 28, fontWeight: 'bold' }}>Reset Password,</Text>
-        <Text style={{ color: '#777', fontSize: 18 }}>
-          Forgot your password, We got you just, easily enter We’re happy to see you here. Enter your email address and password.
-        </Text>
-      </View>
+        <View style={styles.Content}>
+          <Text style={{ fontSize: 28, fontWeight: 'bold' }}>Reset Password,</Text>
+          <Text style={{ color: '#777', fontSize: 18 }}>
+            Enter your email and we&apos;ll send you a reset link. Then paste the UID and Token below.
+          </Text>
+        </View>
 
-      <View style={styles.loginForm}>
-        <TextInput
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          style={styles.InputBtn}
-        />
-        <TextInput
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          style={styles.InputBtn}
-        />
-      </View>
+        <View style={styles.loginForm}>
+          <TextInput
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            style={styles.InputBtn}
+          />
+        </View>
 
-      <View style={styles.Btns}>
-        <TouchableOpacity style={styles.LoginBtn} onPress={handleLogin} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.BtnTitle}>reset password</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.Btns}>
+          <TouchableOpacity style={styles.LoginBtn} onPress={handleSendResetEmail}>
+            <Text style={styles.BtnTitle}>Send Reset Link</Text>
+          </TouchableOpacity>
 
-        <View style={styles.Separator} />
+          <View style={styles.Separator} />
 
-        <TouchableOpacity style={styles.LoginBtn} onPress={() => router.push('/(auth)/Login')}>
-          <Text style={styles.BtnTitle}>Back to Login</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.LoginBtn} onPress={() => router.push('/(auth)/Login')}>
+            <Text style={styles.BtnTitle}>Back to Login</Text>
+          </TouchableOpacity>
+        </View>
+
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={-1}
+          snapPoints={snapPoints}
+          enablePanDownToClose
+        >
+          <View style={{ padding: 16 }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>Reset Password</Text>
+
+            <TextInput
+              placeholder="UID"
+              value={uid}
+              onChangeText={setUid}
+              style={styles.InputBtn}
+            />
+            <TextInput
+              placeholder="Token"
+              value={token}
+              onChangeText={setToken}
+              style={styles.InputBtn}
+            />
+            <TextInput
+              placeholder="New Password"
+              secureTextEntry
+              value={newPassword}
+              onChangeText={setNewPassword}
+              style={styles.InputBtn}
+            />
+            <TextInput
+              placeholder="Confirm Password"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              style={styles.InputBtn}
+            />
+
+            <TouchableOpacity style={styles.LoginBtn} onPress={handleResetPassword} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.BtnTitle}>Reset Password</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </BottomSheet>
+      </GestureHandlerRootView>
 
       <StatusBar style="dark" />
     </SafeAreaView>
@@ -136,6 +161,7 @@ const Forgot = () => {
 };
 
 export default Forgot;
+
 
 const styles = StyleSheet.create({
     Container: {

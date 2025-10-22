@@ -1,0 +1,7 @@
+INSTALL ALL THE DEPENDENCIES:
+
+npm install
+
+RUN THE PROJECT:
+
+npx expo start
