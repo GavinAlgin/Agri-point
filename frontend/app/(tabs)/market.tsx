@@ -45,7 +45,7 @@ const vendors = [
 const services = [
   {
     title: 'Seeds',
-    image: require('@/assets/images/mesh.jpg'),
+    image: require('@/assets/images/apples.jpg'),
   },
   {
     title: 'Seedlings',

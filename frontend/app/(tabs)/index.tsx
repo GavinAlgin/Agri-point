@@ -164,9 +164,8 @@ const Index = () => {
         <IoTCard
           onDevicesPress={() => Alert.alert('Device Connected')}
           onLocationPress={() => Alert.alert('Do you wanna switch off live location')}
-          onAIPress={() => Alert.alert('AI clicked')}
+          onAIPress={() => router.push('/(screens)/GenerativeScreen')}
         />
-
 
         {/* Suggestions Header */}
         <View style={styles.suggestionsHeader}>

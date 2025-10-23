@@ -1,72 +1,185 @@
-// import React, { useEffect, useState } from 'react';
-// import { View, Text, ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
-// import { useLocalSearchParams } from 'expo-router';
-// import Header from '@/components/CustomHeader';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Animated,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '@/components/CustomHeader';
+import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
 
-// const client = new OpenAI({
-//   baseURL: "https://router.huggingface.co/v1", // Hugging Face router endpoint
-//   apiKey: process.env.EXPO_PUBLIC_HF_TOKEN,
-// });
+const width = Dimensions.get('window').width;
 
-// const GenerativeScreen = () => {
-//   const { crop } = useLocalSearchParams();
-//   const [structuredResponse, setStructuredResponse] = useState('');
-//   const [loading, setLoading] = useState(true);
+const GenerativeScreen = () => {
+  const [messages, setMessages] = useState([
+    { id: 1, sender: 'ai', text: "Hello! I’m your AI assistant. How can I help you today?" },
+  ]);
+  const [input, setInput] = useState('');
+  const [typingText, setTypingText] = useState('');
+  const scrollViewRef = useRef<ScrollView>(null);
 
-//   const fetchAIResponse = async () => {
-//     try {
-//       const cropObj = JSON.parse(crop);
-//       const prompt = `Give a structured agricultural analysis for the following crop data:\n${JSON.stringify(
-//         cropObj,
-//         null,
-//         2
-//       )}`;
+  // 🧠 Typewriter Effect for AI message
+  const typeText = (text: string) => {
+    let index = 0;
+    setTypingText('');
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        setTypingText(prev => prev + text[index]);
+        index++;
+      } else {
+        clearInterval(interval);
+        setMessages(prev => [...prev, { id: Date.now(), sender: 'ai', text }]);
+        setTypingText('');
+      }
+    }, 30);
+  };
 
-//       const chatCompletion = await client.chat.completions.create({
-//         model: "deepseek-ai/DeepSeek-R1:fireworks-ai", // Pick the model you want
-//         messages: [
-//           {
-//             role: "user",
-//             content: prompt,
-//           },
-//         ],
-//       });
+  const handleSend = () => {
+    if (!input.trim()) return;
+    const userMessage = { id: Date.now(), sender: 'user', text: input.trim() };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setTimeout(() => {
+      typeText("That’s a great question! Let me find the best possible answer for you...");
+    }, 500);
+  };
 
-//       setStructuredResponse(chatCompletion.choices[0]?.message?.content || "No response");
-//     } catch (error) {
-//       console.error("AI Error:", error);
-//       setStructuredResponse("Failed to fetch AI response.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
+  useEffect(() => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  }, [messages, typingText]);
 
-//   useEffect(() => {
-//     fetchAIResponse();
-//   }, []);
+  return (
+    <SafeAreaView style={styles.container}>
+      <Header title="AI Assistant" />
 
-//   return (
-//     <ScrollView style={styles.container}>
-//       <Header title={'My Field Analysis'} />
-//       {loading ? (
-//         <ActivityIndicator size="large" />
-//       ) : (
-//         <Text style={styles.responseText}>{structuredResponse}</Text>
-//       )}
-//     </ScrollView>
-//   );
-// };
+      {/* Subtitle */}
+      <View style={styles.subtitleContainer}>
+        <Text style={styles.subtitle}>Where knowledge begins</Text>
+      </View>
 
-// export default GenerativeScreen;
+      {/* Input Bar */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={80}>
+        <View style={styles.inputContainer}>
+          <TouchableOpacity>
+            <Feather name="camera" size={22} color="#666" style={styles.iconLeft} />
+          </TouchableOpacity>
 
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     padding: 20,
-//     backgroundColor: '#fff',
-//   },
-//   responseText: {
-//     fontSize: 16,
-//     lineHeight: 22,
-//   },
-// });
+          <TextInput
+            style={styles.input}
+            placeholder="Ask anything..."
+            placeholderTextColor="#999"
+            value={input}
+            onChangeText={setInput}
+            onSubmitEditing={handleSend}
+            returnKeyType="send"
+          />
+
+          <TouchableOpacity onPress={handleSend}>
+            <Feather name="mic" size={22} color="#666" style={styles.iconRight} />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+      <StatusBar style='dark' />
+    </SafeAreaView>
+  );
+};
+
+export default GenerativeScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  subtitleContainer: {
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#777',
+    fontStyle: 'italic',
+  },
+  chatContainer: {
+    flex: 1,
+    paddingHorizontal: width * 0.05,
+    marginBottom: 20,
+  },
+  messageContainer: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    alignItems: 'flex-start',
+  },
+  aiMessage: {
+    alignSelf: 'flex-start',
+  },
+  userMessage: {
+    alignSelf: 'flex-end',
+    flexDirection: 'row-reverse',
+  },
+  iconBubble: {
+    marginHorizontal: 6,
+  },
+  textBubble: {
+    backgroundColor: '#F1F1F1',
+    padding: 10,
+    borderRadius: 12,
+    maxWidth: width * 0.7,
+  },
+  messageText: {
+    fontSize: 15,
+    color: '#333',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 30,
+    backgroundColor: '#f8f8f8',
+    paddingHorizontal: 10,
+    marginHorizontal: 16,
+    marginBottom: 10,
+    height: 50,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#000',
+    paddingHorizontal: 8,
+  },
+  iconLeft: {
+    marginRight: 8,
+  },
+  iconRight: {
+    marginLeft: 8,
+  },
+  centerVoiceIcon: {
+    position: 'absolute',
+    top: '45%',
+    left: '50%',
+    transform: [{ translateX: -30 }, { translateY: -30 }],
+    zIndex: 10,
+  },
+  voiceCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#7B61FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#7B61FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+});
