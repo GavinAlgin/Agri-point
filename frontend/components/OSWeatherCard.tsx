@@ -10,13 +10,12 @@ import {
 } from "react-native";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useLocationWeatherSoil } from "@/app/server/LocationAPI";
 
 const width = Dimensions.get('window').width;
 
 export default function WeatherCard() {
   const router = useRouter();
-  const { weather, errorMsg, refresh } = useLocationWeatherSoil();
+  const { weather, errorMsg, refresh, soil, } = useLocationWeatherSoil();
 
   return (
     <View style={[styles.card, styles.weatherCard]}>
@@ -155,3 +154,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   }
 });
+function useLocationWeatherSoil(): { weather: any; errorMsg: any; refresh: any; soil: any; } {
+  throw new Error("Function not implemented.");
+}
+
