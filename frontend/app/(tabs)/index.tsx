@@ -18,6 +18,7 @@ import { useRouter } from 'expo-router';
 import IoTCard from '@/components/QuickActionsOs';
 import { useAuth } from '@/utils/AuthContext';
 import api from '../server/api';
+import WeatherCard from '@/components/OSWeatherCard';
 
 const { width } = Dimensions.get('window');
 
@@ -77,7 +78,6 @@ const Index = () => {
     fetchUser();
   }, [isAuthenticated]);
 
-
   return (
     <SafeAreaView style={styles.Container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -95,38 +95,8 @@ const Index = () => {
             </TouchableOpacity>
           </View>
 
-        {/* Weather Widget - Redesigned */}
-        <View style={[styles.card, styles.weatherCard]}>
-          {/* Top Row: Weather + Date + Button */}
-          <View style={styles.weatherTopRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>☀️ 28°C, Sunny</Text>
-              <Text style={styles.weatherDate}>Sep 2, 2025 — 2:45 PM</Text>
-            </View>
-            <TouchableOpacity style={styles.weatherButton} onPress={() => router.navigate('/(screens)/WeatherScreen')}>
-              <Feather name="arrow-up-right" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Vertical Divider */}
-          <View style={styles.weatherDivider} />
-
-          {/* Weather Insights Row */}
-          <View style={styles.weatherInsights}>
-            <View style={styles.insightItem}>
-              <Ionicons name="water-outline" size={20} color="#555" />
-              <Text style={styles.insightText}>Humidity: 45%</Text>
-            </View>
-            <View style={styles.insightItem}>
-              <Ionicons name="leaf-outline" size={20} color="#555" />
-              <Text style={styles.insightText}>Wind: 12 km/h</Text>
-            </View>
-            <View style={styles.insightItem}>
-              <Ionicons name="sunny-outline" size={20} color="#555" />
-              <Text style={styles.insightText}>UV: Moderate</Text>
-            </View>
-          </View>
-        </View>
+        {/** Weather Card */}
+        <WeatherCard />
 
         {/* My Field Header */}
         <View style={styles.categoryHeader}>
@@ -175,7 +145,7 @@ const Index = () => {
           </View>
         </View>
 
-        <PlantSuggestionList />
+        {/* <PlantSuggestionList /> */}
       </ScrollView>
       <StatusBar style='dark' />
     </SafeAreaView>
@@ -293,4 +263,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#555',
   },
+  error: {
+    fontSize: 16,
+    color: 'red',
+    fontWeight: 'bold',
+  }
 });
