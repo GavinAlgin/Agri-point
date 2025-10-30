@@ -9,6 +9,7 @@ const _layout = () => {
     <AuthProvider>
       <Stack>
           <Stack.Screen name='GenerativeScreen' options={{ headerShown: false }} />
+          <Stack.Screen name='PlantingGuide' options={{ headerShown: false }} />
           <Stack.Screen name='ProgessScreen' options={{ headerShown: false }} />
           <Stack.Screen name='TaskScreen' options={{ headerShown: false }} />
           <Stack.Screen name='CropDetailScreen' options={{ headerShown: false }} />

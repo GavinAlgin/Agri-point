@@ -63,7 +63,7 @@ const Index = () => {
       if (!isAuthenticated) return;
 
       try {
-        const res = await api.get('/user/', {
+        const res = await api.get('/auth/user', {
           headers: {
             Authorization: `Bearer ${isAuthenticated}`,
           },
@@ -96,7 +96,7 @@ const Index = () => {
           </View>
 
         {/** Weather Card */}
-        <WeatherCard />
+        {/* <WeatherCard /> */}
 
         {/* My Field Header */}
         <View style={styles.categoryHeader}>

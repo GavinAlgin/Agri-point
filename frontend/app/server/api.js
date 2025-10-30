@@ -3,7 +3,7 @@ import axios from 'axios';
 import { getToken, } from '../../utils/tokenStorage';
 
 const instance = axios.create({
-  baseURL: 'http://172.20.10.4:8000/api',
+  baseURL: 'http://agripoint-app-env.eba-xeaaeyup.eu-north-1.elasticbeanstalk.com/api',
   headers: {
     'Content-Type' : 'application/json',
   },

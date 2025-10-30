@@ -165,21 +165,24 @@ function mapWeatherCodeToCondition(code: number): string {
   return 'Unknown';
 }
 
-function getWeatherIcon(code: number) {
-  if (code >= 0 && code <= 3)
-    return require('@/assets/images/sun.png');
-  if (code >= 45 && code <= 48)
-    return require('@/assets/images/fog.png');
-  if (code >= 51 && code <= 67)
-    return require('@/assets/images/drizzle.png');
-  if (code >= 71 && code <= 77)
-    return require('@/assets/images/snow.png');
-  if (code >= 80 && code <= 82)
-    return require('@/assets/images/rain.png');
-  if (code >= 95)
-    return require('@/assets/images/storm.png');
-  return require('@/assets/images/cloud.png');
-}
+// function getWeatherIcon(code: number) {
+//   if (code >= 0 && code <= 3)
+//     return require('@/assets/images/sun.png');
+//   if (code >= 45 && code <= 48)
+//     return require('@/assets/images/fog.png');
+//   if (code >= 51 && code <= 67)
+//     return require('@/assets/images/drizzle.png');
+//   if (code >= 71 && code <= 77)
+//     // return require('@/assets/images/snow.png');
+//   return require('@/assets/images/drizzle.png');
+//   if (code >= 80 && code <= 82)
+//     // return require('@/assets/images/rain.png');
+//   return require('@/assets/images/drizzle.png');
+//   if (code >= 95)
+//     // return require('@/assets/images/storm.png');
+//   return require('@/assets/images/drizzle.png');
+//   // return require('@/assets/images/cloud.png');
+// }
 
 
 export default WeatherScreen;
@@ -260,13 +263,36 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
   },
+  hourlyCard: {
+    width: 80,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 18,
+    padding: 10,
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  hourlyTime: {
+    color: '#fff',
+    marginBottom: 4,
+    fontSize: 14,
+  },
+  hourlyTemp: {
+    color: '#fff',
+    marginTop: 4,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  hourlyIcon: {
+    width: 40,
+    height: 40,
+  },
 });
 
 
-
-function useLocationWeatherSoil(): { weather: any; soil: any; errorMsg: any; refresh: any; } {
+function useLocationWeatherSoil(): { weather: any; soil: any; hourlyData: any; dailyData: any; errorMsg: any; refresh: any; } {
   throw new Error('Function not implemented.');
 }
+
 // import React from 'react';
 // import {
 //   View,
