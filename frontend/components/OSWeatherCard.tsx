@@ -10,12 +10,13 @@ import {
 } from "react-native";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useLocationWeatherSoil } from "../hooks/useLocationWeatherSoil";
 
 const width = Dimensions.get('window').width;
 
 export default function WeatherCard() {
   const router = useRouter();
-  const { weather, errorMsg, refresh, soil, } = useLocationWeatherSoil();
+  const { weather, errorMsg, refresh, soil } = useLocationWeatherSoil();
 
   return (
     <View style={[styles.card, styles.weatherCard]}>
@@ -71,10 +72,16 @@ export default function WeatherCard() {
                 UV: {weather.uv_index ?? "Moderate"}
               </Text>
             </View>
+            <View style={styles.insightItem}>
+              <Ionicons name="thermometer-outline" size={20} color="#555" />
+              <Text style={styles.insightText}>
+                Soil Moisture: {soil?.moisture ?? "—"}%
+              </Text>
+            </View>
           </View>
         </>
       ) : (
-        <ActivityIndicator />
+        <ActivityIndicator size="large" color="#103713" />
       )}
     </View>
   );
@@ -136,8 +143,10 @@ const styles = StyleSheet.create({
   },
   weatherInsights: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 10,
   },
   insightItem: {
     alignItems: 'center',
@@ -154,7 +163,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   }
 });
-function useLocationWeatherSoil(): { weather: any; errorMsg: any; refresh: any; soil: any; } {
-  throw new Error("Function not implemented.");
-}
-

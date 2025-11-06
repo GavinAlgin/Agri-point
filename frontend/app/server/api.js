@@ -1,21 +1,39 @@
-//axios base config
+// axios base config
 import axios from 'axios';
-import { getToken, } from '../../utils/tokenStorage';
+import { getToken } from '../../utils/tokenStorage';
 
-const instance = axios.create({
-  baseURL: 'http://agripoint-app-env.eba-xeaaeyup.eu-north-1.elasticbeanstalk.com/api',
+const BASE_URL = 'http://192.168.0.71:8000';
+
+// Create an axios instance
+const api = axios.create({
+  baseURL: BASE_URL,
+  timeout: 10000, 
   headers: {
-    'Content-Type' : 'application/json',
+    'Content-Type': 'application/json',
   },
 });
 
-// Add token to every request if available
-instance.interceptors.request.use(async (config) => {
-  const token = await getToken('access_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+api.interceptors.request.use(
+  async (config) => {
+    const token = await getToken('access_token'); 
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-export default instance;
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      console.log('Unauthorized — token may have expired.');
+      // You could log the user out or navigate to Login screen
+      // e.g. await removeToken('access_token');
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;

@@ -19,6 +19,9 @@ import IoTCard from '@/components/QuickActionsOs';
 import { useAuth } from '@/utils/AuthContext';
 import api from '../server/api';
 import WeatherCard from '@/components/OSWeatherCard';
+import AgricultureCategories from '@/components/AgricultureCategories';
+// import WeatherCard from '@/components/OSWeatherCard';
+// import OSWeatherCard from '@/components/OSWeatherCard';
 
 const { width } = Dimensions.get('window');
 
@@ -58,25 +61,25 @@ const Index = () => {
   // }, [isAuthenticated, load ing]);
 
   // Fetch logged-in user data
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (!isAuthenticated) return;
+  // useEffect(() => {
+  //   const fetchUser = async () => {
+  //     if (!isAuthenticated) return;
 
-      try {
-        const res = await api.get('/auth/user', {
-          headers: {
-            Authorization: `Bearer ${isAuthenticated}`,
-          },
-        });
-        setUser(res.data);
-        console.log('User loaded:', res.data);
-      } catch (error) {
-        console.error('Error fetching user data:', error.response?.data || error.message);
-      }
-    };
+  //     try {
+  //       const res = await api.get('/auth/user', {
+  //         headers: {
+  //           Authorization: `Bearer ${isAuthenticated}`,
+  //         },
+  //       });
+  //       setUser(res.data);
+  //       console.log('User loaded:', res.data);
+  //     } catch (error) {
+  //       console.error('Error fetching user data:', error.response?.data || error.message);
+  //     }
+  //   };
 
-    fetchUser();
-  }, [isAuthenticated]);
+  //   fetchUser();
+  // }, [isAuthenticated]);
 
   return (
     <SafeAreaView style={styles.Container}>
@@ -96,7 +99,7 @@ const Index = () => {
           </View>
 
         {/** Weather Card */}
-        {/* <WeatherCard /> */}
+        <WeatherCard />
 
         {/* My Field Header */}
         <View style={styles.categoryHeader}>
@@ -106,20 +109,7 @@ const Index = () => {
         </View>
 
         {/* Category Buttons */}
-        <View style={styles.categories}>
-          <Pressable style={styles.categoryBtn} onPress={() => router.push('/(screens)/EducateScreen')}>
-            <MaterialCommunityIcons name="fruit-grapes-outline" size={26} color="black" />
-          </Pressable>
-          <Pressable style={styles.categoryBtn}>
-            <MaterialCommunityIcons name="fruit-watermelon" size={26} color="black" />
-          </Pressable>
-          <Pressable style={styles.categoryBtn}>
-            <MaterialCommunityIcons name="food-apple-outline" size={26} color="black" />
-          </Pressable>
-          <Pressable style={{ padding: 16, borderRadius: 10, backgroundColor: '#f7f7f7', width: 60, alignItems: 'center', }}>
-            <Entypo name="plus" size={26} color="black" />
-          </Pressable>
-        </View>
+        <AgricultureCategories />
 
         {/* My Device Header */}
         <View style={styles.categoryHeader}>
@@ -133,7 +123,7 @@ const Index = () => {
 
         <IoTCard
           onDevicesPress={() => Alert.alert('Device Connected')}
-          onLocationPress={() => Alert.alert('Do you wanna switch off live location')}
+          onLocationPress={() => router.push('/(screens)/MapViewScreen')}
           onAIPress={() => router.push('/(screens)/GenerativeScreen')}
         />
 
@@ -145,7 +135,7 @@ const Index = () => {
           </View>
         </View>
 
-        {/* <PlantSuggestionList /> */}
+        <PlantSuggestionList />
       </ScrollView>
       <StatusBar style='dark' />
     </SafeAreaView>

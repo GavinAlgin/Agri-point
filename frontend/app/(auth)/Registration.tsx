@@ -59,7 +59,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/register/', {
+      const response = await api.post('/signup', {
         email,
         username,
         password,

@@ -12,7 +12,7 @@ const _layout = () => {
           <Stack.Screen name='PlantingGuide' options={{ headerShown: false }} />
           <Stack.Screen name='ProgessScreen' options={{ headerShown: false }} />
           <Stack.Screen name='TaskScreen' options={{ headerShown: false }} />
-          <Stack.Screen name='CropDetailScreen' options={{ headerShown: false }} />
+          <Stack.Screen name='MapViewScreen' options={{ headerShown: false }} />
           <Stack.Screen name='VendorDetailScreen' options={{ headerShown: false }} />
           <Stack.Screen name='LanguageScreen' options={{ headerShown: false }} />
           <Stack.Screen name='CameraScreen' options={{ headerShown: false }} />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,147 +14,49 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-const WeatherScreen: React.FC = () => {
-  const router = useRouter();
-  const {
-    weather,
-    soil,
-    hourlyData,
-    dailyData,
-    errorMsg,
-    refresh,
-  } = useLocationWeatherSoil();
-  const wateringSuitable =
-    soil?.soil_moisture_0_to_7cm && soil.soil_moisture_0_to_7cm < 0.3; // example rule
+// --- Mock hook for demo purposes ---
+function useLocationWeatherSoil() {
+  const [weather, setWeather] = useState<any>(null);
+  const [soil, setSoil] = useState<any>(null);
+  const [hourlyData, setHourlyData] = useState<any[]>([]);
+  const [dailyData, setDailyData] = useState<any[]>([]);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  return (
-    <LinearGradient colors={['#89CFF0', '#103713']} style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.content}>
-          {/* Header */}
-          <View style={styles.Header}>
-            <Pressable
-              style={styles.backContainer}
-              onPress={() => router.back()}>
-              <Feather name="arrow-left" size={24} color="#007AFF" />
-              <Text style={styles.backText}>Back</Text>
-            </Pressable>
-            <Pressable onPress={refresh}>
-              <Feather name="refresh-cw" size={22} color="#fff" />
-            </Pressable>
-          </View>
+  const fetchData = () => {
+    setWeather({
+      temperature: 23,
+      weathercode: 1,
+      humidity: 60,
+      wind_speed: 10,
+      uv_index: 5,
+      time: new Date().toISOString(),
+    });
 
-          {errorMsg ? (
-            <Text style={styles.errorText}>{errorMsg}</Text>
-          ) : !weather ? (
-            <ActivityIndicator color="#fff" size="large" style={{ marginTop: 40 }} />
-          ) : (
-            <>
-              {/* Weather Summary */}
-              <View style={styles.header}>
-                <Text style={styles.cityText}>Your Location</Text>
-                <Text style={styles.dateText}>
-                  {new Date(weather.time).toLocaleString()}
-                </Text>
-              </View>
+    setSoil({
+      soil_temperature_0_to_7cm: 18,
+      soil_moisture_0_to_7cm: 0.25,
+      soil_temperature_7_to_28cm: 15,
+      soil_moisture_7_to_28cm: 0.35,
+    });
 
-              <View style={styles.weatherCard}>
-                <Image
-                  source={require('@/assets/images/cloud.png')}
-                  style={styles.weatherIcon}
-                />
-                <Text style={styles.temperature}>
-                  {weather.temperature}°C
-                </Text>
-                <Text style={styles.condition}>
-                  {mapWeatherCodeToCondition(weather.weathercode)}
-                </Text>
-              </View>
+    const now = new Date();
+    setHourlyData(
+      Array.from({ length: 6 }).map((_, i) => ({
+        time: new Date(now.getTime() + i * 3600 * 1000).toISOString(),
+        temperature: 20 + i,
+        weathercode: i % 3,
+      }))
+    );
+  };
 
-              {/* Info Row */}
-              <View style={styles.infoRow}>
-                <InfoTile
-                  label="Humidity"
-                  value={`${weather.humidity ?? '--'}%`}
-                />
-                <InfoTile
-                  label="Wind"
-                  value={`${weather.wind_speed ?? '--'} km/h`}
-                />
-              </View>
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-              {/* 🌤 Hourly Forecast */}
-              <Text style={styles.sectionTitle}>Hourly Forecast</Text>
+  return { weather, soil, hourlyData, dailyData, errorMsg, refresh: fetchData };
+}
 
-              {!hourlyData || hourlyData.length === 0 ? (
-                <Text style={styles.noDataText}>No hourly forecast available.</Text>
-              ) : (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {hourlyData.map((hour, index) => (
-                    <View key={index} style={styles.hourlyCard}>
-                      <Text style={styles.hourlyTime}>
-                        {new Date(hour.time).getHours()}:00
-                      </Text>
-                      <Image
-                        source={getWeatherIcon(hour.weathercode)}
-                        style={styles.hourlyIcon}
-                      />
-                      <Text style={styles.hourlyTemp}>{hour.temperature}°C</Text>
-                    </View>
-                  ))}
-                </ScrollView>
-              )}
-              
-              <View style={styles.infoRow}>
-                <InfoTile label="UV Index" value={`${weather.uv_index ?? '--'}`} />
-                <InfoTile label="Soil Temp" value={`${soil?.soil_temperature_0_to_7cm ?? '--'}°C`} />
-              </View>
-
-              {/* Soil Data Section */}
-              <Text style={styles.sectionTitle}>Soil Data</Text>
-              <View style={styles.glassCard}>
-                <Text style={styles.soilText}>
-                  🌡️ 0–7 cm Temp: {soil?.soil_temperature_0_to_7cm ?? '--'}°C
-                </Text>
-                <Text style={styles.soilText}>
-                  💧 0–7 cm Moisture: {soil?.soil_moisture_0_to_7cm ?? '--'}
-                </Text>
-                <Text style={styles.soilText}>
-                  🌡️ 7–28 cm Temp: {soil?.soil_temperature_7_to_28cm ?? '--'}°C
-                </Text>
-                <Text style={styles.soilText}>
-                  💧 7–28 cm Moisture: {soil?.soil_moisture_7_to_28cm ?? '--'}
-                </Text>
-              </View>
-
-              {/* Notifications */}
-              <Text style={styles.sectionTitle}>Notifications</Text>
-              <View style={styles.glassCard}>
-                <Text style={styles.notifTitle}>Weather Notification</Text>
-                <Text style={styles.notifBody}>
-                  {wateringSuitable
-                    ? '✅ Conditions are suitable for watering tomorrow.'
-                    : '⚠️ Weather is not ideal for watering tomorrow.'}
-                </Text>
-              </View>
-            </>
-          )}
-        </ScrollView>
-      </SafeAreaView>
-    </LinearGradient>
-  );
-};
-
-const InfoTile: React.FC<{ label: string; value: string }> = ({
-  label,
-  value,
-}) => (
-  <View style={styles.infoTile}>
-    <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue}>{value}</Text>
-  </View>
-);
-
+// --- Map weather code to condition text ---
 function mapWeatherCodeToCondition(code: number): string {
   if (code >= 0 && code <= 3) return 'Clear Sky';
   if (code >= 45 && code <= 48) return 'Foggy';
@@ -165,25 +67,136 @@ function mapWeatherCodeToCondition(code: number): string {
   return 'Unknown';
 }
 
-// function getWeatherIcon(code: number) {
-//   if (code >= 0 && code <= 3)
-//     return require('@/assets/images/sun.png');
-//   if (code >= 45 && code <= 48)
-//     return require('@/assets/images/fog.png');
-//   if (code >= 51 && code <= 67)
-//     return require('@/assets/images/drizzle.png');
-//   if (code >= 71 && code <= 77)
-//     // return require('@/assets/images/snow.png');
-//   return require('@/assets/images/drizzle.png');
-//   if (code >= 80 && code <= 82)
-//     // return require('@/assets/images/rain.png');
-//   return require('@/assets/images/drizzle.png');
-//   if (code >= 95)
-//     // return require('@/assets/images/storm.png');
-//   return require('@/assets/images/drizzle.png');
-//   // return require('@/assets/images/cloud.png');
-// }
+// --- Map weather code to icon ---
+function getWeatherIcon(code: number) {
+  if (code >= 0 && code <= 3) return require('@/assets/images/sun.png');
+  if (code >= 45 && code <= 48) return require('@/assets/images/fog.png');
+  if (code >= 51 && code <= 67) return require('@/assets/images/drizzle.png');
+  // if (code >= 71 && code <= 77) return require('@/assets/images/snow.png');
+  // if (code >= 80 && code <= 82) return require('@/assets/images/rain.png');
+  // if (code >= 95) return require('@/assets/images/storm.png');
+  return require('@/assets/images/cloud.png');
+}
 
+const WeatherScreen: React.FC = () => {
+  const router = useRouter();
+  const { weather, soil, hourlyData, dailyData, errorMsg, refresh } =
+    useLocationWeatherSoil();
+
+  const wateringSuitable =
+    soil?.soil_moisture_0_to_7cm && soil.soil_moisture_0_to_7cm < 0.3;
+
+  if (!weather) {
+    return (
+      <LinearGradient colors={['#89CFF0', '#103713']} style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
+          <ActivityIndicator color="#fff" size="large" style={{ marginTop: 40 }} />
+        </SafeAreaView>
+      </LinearGradient>
+    );
+  }
+
+  return (
+    <LinearGradient colors={['#89CFF0', '#103713']} style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.content}>
+          {/* Header */}
+          <View style={styles.Header}>
+            <Pressable style={styles.backContainer} onPress={() => router.back()}>
+              <Feather name="arrow-left" size={24} color="#007AFF" />
+              <Text style={styles.backText}>Back</Text>
+            </Pressable>
+            <Pressable onPress={refresh}>
+              <Feather name="refresh-cw" size={22} color="#fff" />
+            </Pressable>
+          </View>
+
+          {/* Weather Summary */}
+          <View style={styles.header}>
+            <Text style={styles.cityText}>Your Location</Text>
+            <Text style={styles.dateText}>
+              {new Date(weather.time).toLocaleString()}
+            </Text>
+          </View>
+
+          <View style={styles.weatherCard}>
+            <Image source={getWeatherIcon(weather.weathercode)} style={styles.weatherIcon} />
+            <Text style={styles.temperature}>{weather.temperature}°C</Text>
+            <Text style={styles.condition}>
+              {mapWeatherCodeToCondition(weather.weathercode)}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <InfoTile label="Humidity" value={`${weather.humidity ?? '--'}%`} />
+            <InfoTile label="Wind" value={`${weather.wind_speed ?? '--'} km/h`} />
+          </View>
+
+          {/* Hourly Forecast */}
+          <Text style={styles.sectionTitle}>Hourly Forecast</Text>
+          {!hourlyData || hourlyData.length === 0 ? (
+            <Text style={styles.noDataText}>No hourly forecast available.</Text>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {hourlyData.map((hour, index) => (
+                <View key={index} style={styles.hourlyCard}>
+                  <Text style={styles.hourlyTime}>
+                    {new Date(hour.time).getHours()}:00
+                  </Text>
+                  <Image source={getWeatherIcon(hour.weathercode)} style={styles.hourlyIcon} />
+                  <Text style={styles.hourlyTemp}>{hour.temperature}°C</Text>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+
+          <View style={styles.infoRow}>
+            <InfoTile label="UV Index" value={`${weather.uv_index ?? '--'}`} />
+            <InfoTile
+              label="Soil Temp"
+              value={`${soil?.soil_temperature_0_to_7cm ?? '--'}°C`}
+            />
+          </View>
+
+          {/* Soil Data */}
+          <Text style={styles.sectionTitle}>Soil Data</Text>
+          <View style={styles.glassCard}>
+            <Text style={styles.soilText}>
+              🌡️ 0–7 cm Temp: {soil?.soil_temperature_0_to_7cm ?? '--'}°C
+            </Text>
+            <Text style={styles.soilText}>
+              💧 0–7 cm Moisture: {soil?.soil_moisture_0_to_7cm ?? '--'}
+            </Text>
+            <Text style={styles.soilText}>
+              🌡️ 7–28 cm Temp: {soil?.soil_temperature_7_to_28cm ?? '--'}°C
+            </Text>
+            <Text style={styles.soilText}>
+              💧 7–28 cm Moisture: {soil?.soil_moisture_7_to_28cm ?? '--'}
+            </Text>
+          </View>
+
+          {/* Notifications */}
+          <Text style={styles.sectionTitle}>Notifications</Text>
+          <View style={styles.glassCard}>
+            <Text style={styles.notifTitle}>Weather Notification</Text>
+            <Text style={styles.notifBody}>
+              {wateringSuitable
+                ? '✅ Conditions are suitable for watering tomorrow.'
+                : '⚠️ Weather is not ideal for watering tomorrow.'}
+            </Text>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
+  );
+};
+
+const InfoTile: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <View style={styles.infoTile}>
+    <Text style={styles.infoLabel}>{label}</Text>
+    <Text style={styles.infoValue}>{value}</Text>
+  </View>
+);
 
 export default WeatherScreen;
 
@@ -212,11 +225,7 @@ const styles = StyleSheet.create({
   weatherIcon: { width: 100, height: 100, marginBottom: 10 },
   temperature: { fontSize: 52, fontWeight: '700', color: '#fff' },
   condition: { fontSize: 20, color: '#e0f7fa', marginTop: 8 },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
   infoTile: {
     flex: 1,
     backgroundColor: 'rgba(255,255,255,0.15)',
@@ -225,44 +234,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   infoLabel: { color: '#fff', fontSize: 16 },
-  infoValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    marginTop: 4,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#fff',
-    marginVertical: 16,
-  },
-  glassCard: {
-    borderRadius: 20,
-    padding: 16,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    marginBottom: 16,
-  },
+  infoValue: { fontSize: 18, fontWeight: '600', color: '#fff', marginTop: 4 },
+  sectionTitle: { fontSize: 20, fontWeight: '600', color: '#fff', marginVertical: 16 },
+  glassCard: { borderRadius: 20, padding: 16, backgroundColor: 'rgba(255,255,255,0.15)', marginBottom: 16 },
   soilText: { color: '#fff', fontSize: 16, marginVertical: 4 },
-  notifTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: 'orange',
-    marginBottom: 8,
-  },
+  notifTitle: { fontSize: 18, fontWeight: '600', color: 'orange', marginBottom: 8 },
   notifBody: { fontSize: 16, color: '#fff' },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    fontSize: 16,
-    marginTop: 20,
-  },
-  noDataText: {
-    color: '#fff',
-    opacity: 0.7,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
+  errorText: { color: 'red', textAlign: 'center', fontSize: 16, marginTop: 20 },
+  noDataText: { color: '#fff', opacity: 0.7, textAlign: 'center', marginBottom: 10 },
   hourlyCard: {
     width: 80,
     backgroundColor: 'rgba(255,255,255,0.15)',
@@ -271,27 +250,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
   },
-  hourlyTime: {
-    color: '#fff',
-    marginBottom: 4,
-    fontSize: 14,
-  },
-  hourlyTemp: {
-    color: '#fff',
-    marginTop: 4,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  hourlyIcon: {
-    width: 40,
-    height: 40,
-  },
+  hourlyTime: { color: '#fff', marginBottom: 4, fontSize: 14 },
+  hourlyTemp: { color: '#fff', marginTop: 4, fontSize: 16, fontWeight: '500' },
+  hourlyIcon: { width: 40, height: 40 },
 });
 
-
-function useLocationWeatherSoil(): { weather: any; soil: any; hourlyData: any; dailyData: any; errorMsg: any; refresh: any; } {
-  throw new Error('Function not implemented.');
-}
 
 // import React from 'react';
 // import {

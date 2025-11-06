@@ -1,8 +1,19 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, Pressable, StyleSheet, TextInput, Text, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+  Modal,
+  Animated,
+} from 'react-native';
 import { MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
-import BottomSheet from '@gorhom/bottom-sheet';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 
 type Crop = {
   name: string;
@@ -12,34 +23,49 @@ type Crop = {
 };
 
 const iconMap: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> = {
+  // Crops
   apple: 'food-apple-outline',
   grapes: 'fruit-grapes-outline',
   watermelon: 'fruit-watermelon',
   corn: 'corn',
   carrot: 'carrot',
-  // Add more as needed
+  // Animals
+  cow: 'cow',
+  goat: 'goat',
+  sheep: 'sheep',
+  chicken: 'egg-outline',
+  pig: 'pig-variant-outline',
 };
 
+
 const AgricultureCategories = () => {
+  const navigation = useNavigation<any>();
+  const router = useRouter();
   const [crops, setCrops] = useState<Crop[]>([]);
   const [form, setForm] = useState({ name: '', area: '', location: '' });
-  const bottomSheetRef = useRef<BottomSheet>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const slideAnim = useState(new Animated.Value(0))[0]; // for slide up animation
 
-  const snapPoints = useMemo(() => ['40%'], []);
+  const openModal = () => {
+    setIsModalVisible(true);
+    Animated.timing(slideAnim, {
+      toValue: 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  };
 
-  const openSheet = useCallback(() => {
-    bottomSheetRef.current?.expand();
-  }, []);
-
-  const closeSheet = useCallback(() => {
-    bottomSheetRef.current?.close();
-  }, []);
+  const closeModal = () => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => setIsModalVisible(false));
+  };
 
   const handleSubmit = () => {
     const lowerName = form.name.toLowerCase();
-    const iconKey = Object.keys(iconMap).find((key) =>
-      lowerName.includes(key)
-    ) as keyof typeof iconMap;
+    const iconKey = Object.keys(iconMap).find((key) => lowerName.includes(key)) as keyof typeof iconMap;
 
     const newCrop: Crop = {
       name: form.name,
@@ -50,54 +76,99 @@ const AgricultureCategories = () => {
 
     setCrops((prev) => [...prev, newCrop]);
     setForm({ name: '', area: '', location: '' });
-    closeSheet();
+    closeModal();
+
+    // Navigate to Guidelines screen with form data
+    router.push({
+      pathname: '/(screens)/EducateScreen',
+      params: {
+        location: form.location,
+        type: form.name,
+        area: form.area,
+      },
+    });
   };
 
+  const translateY = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [400, 0], // slide up from bottom
+  });
+
   return (
-    <GestureHandlerRootView style={styles.categories}>
-      {crops.map((crop, index) => (
+    <View style={styles.categories}>
+      {/* {crops.map((crop, index) => (
         <Pressable key={index} style={styles.categoryBtn}>
           <MaterialCommunityIcons name={crop.icon} size={26} color="black" />
         </Pressable>
-      ))}
+      ))} */}
+      {crops.map((crop, index) => (
+      <Pressable
+        key={index}
+        style={styles.categoryBtn}
+        onPress={() =>
+          router.push({
+            pathname: '/(screens)/EducateScreen',
+            params: {
+              location: crop.location,
+              type: crop.name,
+              area: crop.area,
+            },
+          })
+        }>
+        <MaterialCommunityIcons name={crop.icon} size={30} color="#103713" />
+        {/* <Text style={{ fontSize: 12, marginTop: 4 }}>{crop.name}</Text> */}
+      </Pressable>
+    ))}
 
-      <TouchableOpacity style={styles.plusButton} onPress={openSheet}>
+      <TouchableOpacity style={styles.plusButton} onPress={openModal}>
         <Entypo name="plus" size={26} color="black" />
       </TouchableOpacity>
 
-      <BottomSheet ref={bottomSheetRef} index={-1} snapPoints={snapPoints} enablePanDownToClose>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.sheetContainer}>
-          <Text style={styles.label}>What do you want to plant?</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. Apple"
-            value={form.name}
-            onChangeText={(text) => setForm({ ...form, name: text })}
-          />
+      {/* Modal Bottom Sheet */}
+      <Modal
+        visible={isModalVisible}
+        transparent
+        animationType="none"
+        onRequestClose={closeModal}>
+        <Pressable style={styles.backdrop} onPress={closeModal} />
 
-          <Text style={styles.label}>How many square meters?</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. 50"
-            keyboardType="numeric"
-            value={form.area}
-            onChangeText={(text) => setForm({ ...form, area: text })}
-          />
+        <Animated.View style={[styles.modalContainer, { transform: [{ translateY }] }]}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.sheetContainer}
+          >
+            <Text style={styles.label}>What do you want to plant?</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. Apple"
+              value={form.name}
+              onChangeText={(text) => setForm({ ...form, name: text })}
+            />
 
-          <Text style={styles.label}>Where?</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. Backyard"
-            value={form.location}
-            onChangeText={(text) => setForm({ ...form, location: text })}
-          />
+            <Text style={styles.label}>How many square meters?</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. 50"
+              keyboardType="numeric"
+              value={form.area}
+              onChangeText={(text) => setForm({ ...form, area: text })}
+            />
 
-          <Pressable style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={{ color: 'white', fontWeight: 'bold' }}>Submit</Text>
-          </Pressable>
-        </KeyboardAvoidingView>
-      </BottomSheet>
-    </GestureHandlerRootView>
+            <Text style={styles.label}>Where?</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. Dalmada AH"
+              value={form.location}
+              onChangeText={(text) => setForm({ ...form, location: text })}
+            />
+
+            <Pressable style={styles.submitButton} onPress={handleSubmit}>
+              <Text style={{ color: 'white', fontWeight: 'bold' }}>Submit</Text>
+            </Pressable>
+          </KeyboardAvoidingView>
+        </Animated.View>
+      </Modal>
+    </View>
   );
 };
 
@@ -124,8 +195,25 @@ const styles = StyleSheet.create({
     width: 60,
     alignItems: 'center',
   },
-  sheetContainer: {
+  backdrop: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  modalContainer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  sheetContainer: {
     padding: 20,
     gap: 12,
   },
@@ -142,9 +230,26 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: 10,
-    backgroundColor: '#2e7d32',
+    backgroundColor: '#103713',
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
   },
 });
+
+
+
+        {/* <View style={styles.categories}>
+          <Pressable style={styles.categoryBtn} onPress={() => router.push('/(screens)/EducateScreen')}>
+            <MaterialCommunityIcons name="fruit-grapes-outline" size={26} color="black" />
+          </Pressable>
+          <Pressable style={styles.categoryBtn}>
+            <MaterialCommunityIcons name="fruit-watermelon" size={26} color="black" />
+          </Pressable>
+          <Pressable style={styles.categoryBtn}>
+            <MaterialCommunityIcons name="food-apple-outline" size={26} color="black" />
+          </Pressable>
+          <Pressable style={{ padding: 16, borderRadius: 10, backgroundColor: '#f7f7f7', width: 60, alignItems: 'center', }}>
+            <Entypo name="plus" size={26} color="black" />
+          </Pressable>
+        </View> */}

@@ -9,14 +9,21 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/components/CustomHeader';
-import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { router } from 'expo-router';
 
 const width = Dimensions.get('window').width;
+
+const simulatedAgricultureData = [
+  "Wheat crop growth is optimal at 20°C with moderate rainfall.",
+  "Tomatoes require 6-8 hours of sunlight daily.",
+  "Corn yield increases with nitrogen-rich fertilizer.",
+];
 
 const GenerativeScreen = () => {
   const [messages, setMessages] = useState([
@@ -24,9 +31,11 @@ const GenerativeScreen = () => {
   ]);
   const [input, setInput] = useState('');
   const [typingText, setTypingText] = useState('');
-  const scrollViewRef = useRef<ScrollView>(null);
 
-  // 🧠 Typewriter Effect for AI message
+  const scrollViewRef = useRef<ScrollView>(null);
+  const navigation = useNavigation<any>();
+
+  // Typewriter effect
   const typeText = (text: string) => {
     let index = 0;
     setTypingText('');
@@ -42,15 +51,38 @@ const GenerativeScreen = () => {
     }, 30);
   };
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    const userMessage = { id: Date.now(), sender: 'user', text: input.trim() };
+  const handleSend = (userInput?: string) => {
+    const msgText = userInput || input.trim();
+    if (!msgText) return;
+
+    const userMessage = { id: Date.now(), sender: 'user', text: msgText };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+
     setTimeout(() => {
-      typeText("That’s a great question! Let me find the best possible answer for you...");
+      const randomData = simulatedAgricultureData[Math.floor(Math.random() * simulatedAgricultureData.length)];
+      typeText(`Based on agricultural insights: ${randomData}`);
     }, 500);
   };
+
+  const handleVoiceInput = () => {
+    const simulatedVoiceText = "Tell me about corn farming.";
+    handleSend(simulatedVoiceText);
+  };
+
+  // Handle scanned data returned from camera
+  useFocusEffect(
+    React.useCallback(() => {
+      const unsubscribe = navigation.addListener('focus', () => {
+        const params = navigation.getState().routes.find(r => r.name === 'Generative')?.params;
+        if (params?.scannedData) {
+          handleSend(params.scannedData);
+          navigation.setParams({ scannedData: undefined });
+        }
+      });
+      return unsubscribe;
+    }, [navigation])
+  );
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -59,18 +91,43 @@ const GenerativeScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Header title="AI Assistant" />
-
-      {/* Subtitle */}
       <View style={styles.subtitleContainer}>
         <Text style={styles.subtitle}>Where knowledge begins</Text>
       </View>
 
-      {/* Input Bar */}
+      <ScrollView style={styles.chatContainer} ref={scrollViewRef}>
+        {messages.map(msg => (
+          <View
+            key={msg.id}
+            style={[styles.messageContainer, msg.sender === 'ai' ? styles.aiMessage : styles.userMessage]}
+          >
+            <Ionicons
+              name={msg.sender === 'ai' ? "ios-robot-outline" : "person-circle-outline"}
+              size={24}
+              color={msg.sender === 'ai' ? "#7B61FF" : "#00A86B"}
+              style={styles.iconBubble}
+            />
+            <View style={styles.textBubble}>
+              <Text style={styles.messageText}>{msg.text}</Text>
+            </View>
+          </View>
+        ))}
+        {typingText ? (
+          <View style={[styles.messageContainer, styles.aiMessage]}>
+            <Ionicons name="ios-robot-outline" size={24} color="#7B61FF" style={styles.iconBubble} />
+            <View style={styles.textBubble}>
+              <Text style={styles.messageText}>{typingText}|</Text>
+            </View>
+          </View>
+        ) : null}
+      </ScrollView>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={80}>
+        keyboardVerticalOffset={80}
+      >
         <View style={styles.inputContainer}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/(screens)/CameraScreen')}>
             <Feather name="camera" size={22} color="#666" style={styles.iconLeft} />
           </TouchableOpacity>
 
@@ -80,16 +137,17 @@ const GenerativeScreen = () => {
             placeholderTextColor="#999"
             value={input}
             onChangeText={setInput}
-            onSubmitEditing={handleSend}
+            onSubmitEditing={() => handleSend()}
             returnKeyType="send"
           />
 
-          <TouchableOpacity onPress={handleSend}>
+          <TouchableOpacity onPress={handleVoiceInput}>
             <Feather name="mic" size={22} color="#666" style={styles.iconRight} />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-      <StatusBar style='dark' />
+
+      <StatusBar style="dark" />
     </SafeAreaView>
   );
 };
@@ -97,89 +155,18 @@ const GenerativeScreen = () => {
 export default GenerativeScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  subtitleContainer: {
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#777',
-    fontStyle: 'italic',
-  },
-  chatContainer: {
-    flex: 1,
-    paddingHorizontal: width * 0.05,
-    marginBottom: 20,
-  },
-  messageContainer: {
-    flexDirection: 'row',
-    marginBottom: 12,
-    alignItems: 'flex-start',
-  },
-  aiMessage: {
-    alignSelf: 'flex-start',
-  },
-  userMessage: {
-    alignSelf: 'flex-end',
-    flexDirection: 'row-reverse',
-  },
-  iconBubble: {
-    marginHorizontal: 6,
-  },
-  textBubble: {
-    backgroundColor: '#F1F1F1',
-    padding: 10,
-    borderRadius: 12,
-    maxWidth: width * 0.7,
-  },
-  messageText: {
-    fontSize: 15,
-    color: '#333',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 30,
-    backgroundColor: '#f8f8f8',
-    paddingHorizontal: 10,
-    marginHorizontal: 16,
-    marginBottom: 10,
-    height: 50,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#000',
-    paddingHorizontal: 8,
-  },
-  iconLeft: {
-    marginRight: 8,
-  },
-  iconRight: {
-    marginLeft: 8,
-  },
-  centerVoiceIcon: {
-    position: 'absolute',
-    top: '45%',
-    left: '50%',
-    transform: [{ translateX: -30 }, { translateY: -30 }],
-    zIndex: 10,
-  },
-  voiceCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#7B61FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#7B61FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  subtitleContainer: { alignItems: 'center', marginVertical: 10 },
+  subtitle: { fontSize: 14, color: '#777', fontStyle: 'italic' },
+  chatContainer: { flex: 1, paddingHorizontal: width * 0.05, marginBottom: 20 },
+  messageContainer: { flexDirection: 'row', marginBottom: 12, alignItems: 'flex-start' },
+  aiMessage: { alignSelf: 'flex-start' },
+  userMessage: { alignSelf: 'flex-end', flexDirection: 'row-reverse' },
+  iconBubble: { marginHorizontal: 6 },
+  textBubble: { backgroundColor: '#F1F1F1', padding: 10, borderRadius: 12, maxWidth: width * 0.7 },
+  messageText: { fontSize: 15, color: '#333' },
+  inputContainer: { flexDirection: 'row', alignItems: 'center', borderRadius: 30, backgroundColor: '#f8f8f8', paddingHorizontal: 10, marginHorizontal: 16, marginBottom: 10, height: 50 },
+  input: { flex: 1, fontSize: 16, color: '#000', paddingHorizontal: 8 },
+  iconLeft: { marginRight: 8 },
+  iconRight: { marginLeft: 8 },
 });
