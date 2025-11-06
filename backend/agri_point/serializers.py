@@ -4,7 +4,7 @@ from rest_framework.serializers import ModelSerializer
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeError
-from .models import Address, Cart, CartItem, Category, Order, OrderItem, Payment, Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock, Role, UserAddress
+from .models import Address, Cart, CartItem, Category, Order, OrderItem, Payment, Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock, Role, UserAddress, ai_response
 
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
@@ -78,7 +78,13 @@ class SetNewPasswordSerializer(serializers.Serializer):
         except Exception:
             raise serializers.ValidationError("Invalid reset link")
 
-            
+
+# AI response serializers
+class AIResponseSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = ai_response
+        fields = ['id', 'user', 'question', 'created_at']
+
 # Serializers for the extended models
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:

@@ -13,11 +13,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework.decorators import api_view, permission_classes, action
-from .models import Address, Cart, CartItem, Category, Order, OrderItem, Payment, Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock, Role, UserAddress
+from .models import Address, Cart, CartItem, Category, Order, OrderItem, Payment, Post, Crop, Product, Equipment, FarmingAdviceRequest, Livestock, Role, UserAddress, ai_response
 from .serializers import (
     AddressSerializer, CartItemSerializer, CartSerializer, CategorySerializer, OrderItemSerializer, OrderSerializer, PaymentSerializer, PostSerializer, CropSerializer, RoleSerializer, UserAddressSerializer, UserSerializer, ProductSerializer, EquipmentSerializer, 
     FarmingAdviceRequestSerializer, LivestockSerializer, ResetPasswordRequestSerializer, 
-    SetNewPasswordSerializer
+    SetNewPasswordSerializer, AIResponseSerializers
 )
 
 PLANT_API_KEY = "t4BJQ00zXdqLKNEbNwkO"
@@ -178,6 +178,15 @@ class LivestockViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
+class AIInteractionListCreateView(generics.ListCreateAPIView):
+    serializer_class = AIResponseSerializers
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return ai_response.objects.filter(user=self.request.user).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 # Extended viewsets for the extended serializers
 class UserViewSet(viewsets.ModelViewSet):

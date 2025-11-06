@@ -6,7 +6,7 @@ from rest_framework.routers import DefaultRouter
 from agri_point.views import(
     AddressViewSet, CartItemViewSet, CartViewSet, CategoryViewSet, OrderItemViewSet, OrderViewSet, PaymentViewSet, PostViewSet, CropViewSet, RegisterView, ProductViewSet, EquipmentViewSet, 
     FarmingAdviceRequestViewSet, LivestockViewSet, RoleViewSet, UserAddressViewSet, UserViewSet, logout_view, current_user_view, 
-    identity_crop, password_reset_request, password_reset_confirm
+    identity_crop, password_reset_request, password_reset_confirm, AIInteractionListCreateView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -33,6 +33,9 @@ router.register('order-items', OrderItemViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+
+    # AI Chat interactions (save + fetch)
+    path('api/ai/response/', AIInteractionListCreateView.as_view(), name='ai_response'),
     path('api/identity-crop/', identity_crop, name='identity_crop'),
 
     # Auth
