@@ -83,7 +83,7 @@ class SetNewPasswordSerializer(serializers.Serializer):
 class AIResponseSerializers(serializers.ModelSerializer):
     class Meta:
         model = ai_response
-        fields = ['id', 'user', 'question', 'created_at']
+        fields = ['id', 'user', 'question', 'response', 'created_at']
 
 # Serializers for the extended models
 class RoleSerializer(serializers.ModelSerializer):
