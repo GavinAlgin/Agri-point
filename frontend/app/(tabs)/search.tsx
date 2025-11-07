@@ -113,7 +113,7 @@ const FarmManagement = () => {
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.list}
       renderItem={({ item }) => (
-        <TouchableOpacity onPress={() => router.push('/(screens)/VendorDetailScreen')}>
+        <TouchableOpacity onPress={() => router.push('/(screens)/PlantingGuide')}>
           <View style={styles.card}>
             <Image source={item.icon} style={styles.icon} />
             <View style={styles.info}>

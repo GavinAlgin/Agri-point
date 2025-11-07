@@ -21,7 +21,7 @@ const _layout = () => {
           <Stack.Screen name='WeatherScreen' options={{ headerShown: false }} />
           <Stack.Screen name='EducateScreen' options={{ headerShown: false }} />
           <Stack.Screen name='EnvironmentControl' options={{ headerShown: false }} />
-          <Stack.Screen name='Greenhouse' options={{ headerShown: false }} />
+          <Stack.Screen name='GreenhouseScreen' options={{ headerShown: false }} />
       </Stack>
     </AuthProvider>
     <StatusBar style='auto' />

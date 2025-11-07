@@ -14,15 +14,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Header from "@/components/CustomHeader";
 import { Ionicons, Feather, Octicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
+import { Audio } from "expo-av";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import * as Speech from "expo-speech";
-// import * as SpeechToText from "expo-speech-to-text"; // Expo dev client required
 
 const width = Dimensions.get("window").width;
 
-// Hugging Face API setup
+// API keys
+const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
 const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
+
 const HUGGINGFACE_API_URL =
   "https://api-inference.huggingface.co/models/TheBloke/vicuna-7B-1.1-HF";
 
@@ -32,6 +34,7 @@ const GenerativeScreen = () => {
   ]);
   const [input, setInput] = useState("");
   const [typingText, setTypingText] = useState("");
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -49,11 +52,12 @@ const GenerativeScreen = () => {
         clearInterval(interval);
         setMessages((prev) => [...prev, { id: Date.now(), sender: "ai", text }]);
         setTypingText("");
+        Speech.speak(text); // Optional: speak AI’s response aloud
       }
     }, 20);
   };
 
-  // Send message and get AI response from Hugging Face
+  // Send text to Hugging Face model
   const handleSend = async (userInput?: string) => {
     const msgText = userInput || input.trim();
     if (!msgText) return;
@@ -61,10 +65,9 @@ const GenerativeScreen = () => {
     const userMessage = { id: Date.now(), sender: "user", text: msgText };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
+    setTypingText("...");
 
     try {
-      setTypingText("...");
-
       const response = await fetch(HUGGINGFACE_API_URL, {
         method: "POST",
         headers: {
@@ -86,32 +89,69 @@ const GenerativeScreen = () => {
     }
   };
 
-  // Voice input using Speech-to-Text
-  // const handleVoiceInput = async () => {
-  //   try {
-  //     setIsRecording(true);
-  //     const result = await SpeechToText.startAsync(); // returns { text: string }
-  //     if (result?.text) handleSend(result.text);
-  //   } catch (err) {
-  //     console.error("Voice recognition error:", err);
-  //   } finally {
-  //     setIsRecording(false);
-  //   }
-  // };
+  // 🎙️ Record and transcribe using OpenAI Whisper
+  const handleVoiceInput = async () => {
+    try {
+      if (isRecording) {
+        // Stop recording
+        console.log("Stopping recording...");
+        setIsRecording(false);
+        await recording?.stopAndUnloadAsync();
+        const uri = recording?.getURI();
+        setRecording(null);
 
-  // Handle scanned data from camera
-  useFocusEffect(
-    React.useCallback(() => {
-      const unsubscribe = navigation.addListener("focus", () => {
-        const params = navigation.getState().routes.find((r) => r.name === "Generative")?.params;
-        if (params?.scannedData) {
-          handleSend(params.scannedData);
-          navigation.setParams({ scannedData: undefined });
+        if (uri) {
+          const transcription = await transcribeAudio(uri);
+          if (transcription) handleSend(transcription);
         }
+      } else {
+        // Start recording
+        console.log("Starting recording...");
+        await Audio.requestPermissionsAsync();
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+        });
+
+        const { recording } = await Audio.Recording.createAsync(
+          Audio.RecordingOptionsPresets.HIGH_QUALITY
+        );
+        setRecording(recording);
+        setIsRecording(true);
+      }
+    } catch (err) {
+      console.error("Voice recording error:", err);
+      setIsRecording(false);
+    }
+  };
+
+  // 🧠 Upload audio to Whisper API
+  const transcribeAudio = async (uri: string): Promise<string | null> => {
+    try {
+      const formData = new FormData();
+      formData.append("file", {
+        uri,
+        type: "audio/m4a",
+        name: "speech.m4a",
+      } as any);
+      formData.append("model", "whisper-1");
+
+      const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: formData,
       });
-      return unsubscribe;
-    }, [navigation])
-  );
+
+      const data = await response.json();
+      console.log("Transcription:", data);
+      return data.text || null;
+    } catch (error) {
+      console.error("Transcription error:", error);
+      return null;
+    }
+  };
 
   // Auto-scroll
   useEffect(() => {
@@ -120,12 +160,16 @@ const GenerativeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="AI Assistant" />
+      <Header title="Agri Assistant" />
 
       <ScrollView
         style={styles.chatContainer}
         ref={scrollViewRef}
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-start", paddingVertical: 10 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "flex-start",
+          paddingVertical: 10,
+        }}
       >
         {messages.map((msg) => (
           <View
@@ -163,7 +207,6 @@ const GenerativeScreen = () => {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
         style={styles.inputWrapper}
       >
         <View style={styles.inputContainer}>
@@ -181,7 +224,7 @@ const GenerativeScreen = () => {
             returnKeyType="send"
           />
 
-          <TouchableOpacity >
+          <TouchableOpacity onPress={handleVoiceInput}>
             <Feather
               name={isRecording ? "mic-off" : "mic"}
               size={22}

@@ -59,9 +59,11 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/signup', {
+      const response = await api.post('register/', {
         email,
         username,
+        firstname,
+        lastname,
         password,
       });
 

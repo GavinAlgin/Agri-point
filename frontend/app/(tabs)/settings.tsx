@@ -32,7 +32,7 @@ const ProfileScreen = () => {
       if (!isAuthenticated) return;
 
       try {
-        const res = await api.get('/user/', {
+        const res = await api.get('user/', {
           headers: {
             Authorization: `Bearer ${isAuthenticated}`,
           },

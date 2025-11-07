@@ -10,14 +10,14 @@ export const EnvironmentSelector: React.FC = () => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/(screens)/EnvironmentControl')}>
+          onPress={() => router.push('/GreenHouseScreen')}>
           <Feather name="home" size={28} color="black" />
           <Text style={styles.buttonText}>Indoor</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/(screens)/EnvironmentControl')}>
+          onPress={() => router.push('/(screens)/GreenHouseScreen')}>
           <MaterialCommunityIcons name="flower-tulip-outline" size={28} color="black" />
           <Text style={styles.buttonText}>Greenhouse</Text>
         </TouchableOpacity>

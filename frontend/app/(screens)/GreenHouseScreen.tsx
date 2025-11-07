@@ -11,7 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 
-export const GrowingInfoScreen: React.FC = () => {
+export default function GrowingInfoScreen(){
   const [light, setLight] = useState(10);
   const [humidity, setHumidity] = useState(90);
   const [age, setAge] = useState(1);

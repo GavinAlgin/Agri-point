@@ -19,13 +19,6 @@ export default function _layout() {
 
       setFontsLoaded(true);
       SplashScreen.hideAsync();
-
-      // Set global font for Text and TextInput
-      Text.defaultProps = Text.defaultProps || {};
-      Text.defaultProps.style = { fontFamily: 'Lato-Regular' };
-
-      TextInput.defaultProps = TextInput.defaultProps || {};
-      TextInput.defaultProps.style = { fontFamily: 'Lato-Regular' };
     }
 
     loadFonts();

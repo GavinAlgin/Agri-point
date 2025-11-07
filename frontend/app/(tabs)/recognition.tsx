@@ -1,359 +1,293 @@
-import { Ionicons } from '@expo/vector-icons';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
-import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-  Animated,
-  ScrollView,
   Image,
-  Pressable,
+  ActivityIndicator,
+  StyleSheet,
+  Modal,
+  ScrollView,
 } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
+import api from '../server/api';
 
-const { height } = Dimensions.get('window');
-
-const Recognition = () => {
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [fabExpanded, setFabExpanded] = useState(false);
-  const [history, setHistory] = useState([]);
+export default function RecognitionScreen() {
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [overlayVisible, setOverlayVisible] = useState(false);
 
-  const animation = useRef(new Animated.Value(0)).current;
-  const router = useRouter();
-  const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ['25%', '45%'], []);
+  // ----------------------------
+  // 📸 Pick Image from Gallery
+  // ----------------------------
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permission to access gallery is required!');
+      return;
+    }
 
-  const toggleDropdown = () => setDropdownVisible((prev) => !prev);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
 
-  const fetchAIContent = async (uri) => {
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setImageUri(result.assets[0].uri);
+      setResult(null);
+    }
+  };
+
+  // ----------------------------
+  // 🔄 Refresh / Clear Everything
+  // ----------------------------
+  const handleRefresh = () => {
+    setImageUri(null);
+    setResult(null);
+  };
+
+  // ----------------------------
+  // 🧠 Send Image → Backend (AI Crop Detection)
+  // ----------------------------
+  const fetchAIContent = async (uri: string) => {
     try {
+      setLoading(true);
       const formData = new FormData();
       formData.append('image', {
         uri,
         name: 'image.jpg',
         type: 'image/jpeg',
-      });
+      } as any);
 
-      const response = await fetch('http://192.168.43.142/api/identity-crop/', {
-        method: 'POST',
+      const response = await api.post('identity-crop/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        body: formData,
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Server error');
-      }
-
-      return {
-        crop_detected: data.crop_detected,
-        confidence: data.confidence,
-        raw_response: data.raw_response,
-      };
-    } catch (error) {
-      console.error('AI fetch failed:', error);
-      return {
-        crop_detected: 'Error',
-        confidence: 0,
-        raw_response: null,
-      };
+      setResult({
+        crop_detected: data.crop_detected || 'Unknown',
+        confidence: data.confidence || 0,
+        raw_response: data.raw_response || 'No details provided.',
+      });
+    } catch (error: any) {
+      console.error('AI fetch failed:', error.response?.data || error.message);
+      alert('Error analyzing image. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-
-const pickImage = async () => {
-  closeSheet();
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 0.6, // reduce quality to avoid broken pipe
-  });
-
-  if (!result.canceled && result.assets?.length > 0) {
-    const uri = result.assets[0].uri;
-    setLoading(true);
-
-    const aiResponse = await fetchAIContent(uri);
-    setLoading(false);
-
-    setHistory((prev) => [
-      {
-        id: Date.now(),
-        image: uri,
-        content: aiResponse.crop_detected,
-      },
-      ...prev,
-    ]);
-
-    router.push({
-      pathname: '/(screens)/ImgGenAIScreen',
-      query: {
-        image: uri,
-        crop: aiResponse.crop_detected,
-        confidence: aiResponse.confidence,
-      },
-    });
-  }
-};
-
-
-  const openSheet = () => {
-    bottomSheetRef.current?.expand();
-    setOverlayVisible(true);
-  };
-
-  const closeSheet = () => {
-    bottomSheetRef.current?.close();
-    setOverlayVisible(false);
-  };
-
-  const toggleFab = () => {
-    Animated.timing(animation, {
-      toValue: fabExpanded ? 0 : 1,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-    setFabExpanded((prev) => !prev);
-  };
-
-  const uploadTranslate = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -70],
-  });
-
-  const scanTranslate = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -140],
-  });
-
+  // ----------------------------
+  // 🧾 UI Render
+  // ----------------------------
   return (
-    <SafeAreaView style={styles.container}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerText}>Detection</Text>
-          <View style={{ position: 'relative' }}>
-            <TouchableOpacity
-              onPress={toggleDropdown}
-              style={styles.iconButton}>
-              <Ionicons name="ellipsis-vertical" size={20} color="black" />
-            </TouchableOpacity>
+    <View style={styles.container}>
+      <Text style={styles.title}>🌾 Crop Recognition</Text>
+      <Text style={styles.subtitle}>
+        Upload an image of a crop to identify it using AI
+      </Text>
 
-            {dropdownVisible && (
-              <View style={styles.dropdown}>
-                <TouchableOpacity style={styles.dropdownItem}>
-                  <Text>Share</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.dropdownItem}>
-                  <Text>Report</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+      <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+        ) : (
+          <View style={styles.placeholder}>
+            <Ionicons name="image-outline" size={50} color="#888" />
+            <Text style={styles.placeholderText}>Tap to select an image</Text>
           </View>
-        </View>
+        )}
+      </TouchableOpacity>
 
-        {/* AI History */}
-        <ScrollView style={{ flex: 1, paddingHorizontal: 16 }}>
-          {history.length === 0 ? (
-            <Text style={styles.noHistoryText}>No AI responses yet.</Text>
-          ) : (
-            history.map((item) => (
-              <View key={item.id} style={styles.historyItem}>
-                <Image
-                  source={{ uri: item.image }}
-                  style={styles.historyImage}
-                />
-                <Text style={styles.historyText}>{item.content}</Text>
-              </View>
-            ))
-          )}
-        </ScrollView>
+      {imageUri && (
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            style={styles.analyzeButton}
+            onPress={() => fetchAIContent(imageUri)}
+          >
+            <Ionicons name="scan-outline" size={18} color="#fff" />
+            <Text style={styles.buttonText}>Analyze</Text>
+          </TouchableOpacity>
 
-        {/* FAB */}
-        <View style={styles.fabContainer}>
-          <Animated.View
-            style={[
-              styles.actionButton,
-              {
-                transform: [{ translateY: uploadTranslate }],
-                opacity: animation,
-              },
-            ]}>
-            <TouchableOpacity onPress={openSheet} style={styles.subButton}>
-              <Ionicons name="cloud-upload-outline" size={24} color="white" />
-            </TouchableOpacity>
-          </Animated.View>
-
-          <Animated.View
-            style={[
-              styles.actionButton,
-              {
-                transform: [{ translateY: scanTranslate }],
-                opacity: animation,
-              },
-            ]}>
-            <TouchableOpacity
-              onPress={() => {
-                toggleFab();
-                router.push('/(screens)/CameraScreen');
-              }}
-              style={styles.subButton}>
-              <Ionicons name="camera-outline" size={24} color="white" />
-            </TouchableOpacity>
-          </Animated.View>
-
-          <TouchableOpacity onPress={toggleFab} style={styles.mainFab}>
-            <Ionicons
-              name={fabExpanded ? 'close' : 'add'}
-              size={28}
-              color="white"
-            />
+          <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
+            <Ionicons name="refresh-outline" size={20} color="#388E3C" />
+            <Text style={styles.refreshText}>Refresh</Text>
           </TouchableOpacity>
         </View>
+      )}
 
-        {/* Overlay & Bottom Sheet container */}
-        <View style={StyleSheet.absoluteFill}>
-          {/* Overlay behind the BottomSheet */}
-          {overlayVisible && (
-            <Pressable style={styles.overlay} onPress={closeSheet} />
+      {result && (
+        <ScrollView
+          style={styles.resultCard}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.resultTitle}>✅ Analysis Result</Text>
+          <Text style={styles.resultText}>
+            <Text style={styles.label}>Crop:</Text> {result.crop_detected}
+          </Text>
+          <Text style={styles.resultText}>
+            <Text style={styles.label}>Confidence:</Text>{' '}
+            {(result.confidence * 100).toFixed(2)}%
+          </Text>
+
+          {result.raw_response && (
+            <View style={styles.rawResponseBox}>
+              <Text style={styles.label}>AI Details:</Text>
+              <Text style={styles.rawResponseText}>
+                {typeof result.raw_response === 'object'
+                  ? JSON.stringify(result.raw_response, null, 2)
+                  : result.raw_response}
+              </Text>
+            </View>
           )}
+        </ScrollView>
+      )}
 
-          {/* Bottom Sheet on top of overlay */}
-          <BottomSheet
-            ref={bottomSheetRef}
-            index={-1}
-            snapPoints={snapPoints}
-            enablePanDownToClose
-            onClose={() => setOverlayVisible(false)}>
-            <BottomSheetView style={styles.sheetContent}>
-              <TouchableOpacity onPress={pickImage} style={styles.sheetButton}>
-                <Text>Select from Gallery</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={closeSheet} style={styles.sheetButton}>
-                <Text style={{ color: 'red' }}>Cancel</Text>
-              </TouchableOpacity>
-            </BottomSheetView>
-          </BottomSheet>
+      {/* 🌀 Overlay while loading */}
+      <Modal transparent animationType="fade" visible={loading}>
+        <View style={styles.overlay}>
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <Text style={styles.loadingText}>Analyzing Image...</Text>
+          </View>
         </View>
-      </GestureHandlerRootView>
-    </SafeAreaView>
+      </Modal>
+    </View>
   );
-};
-
-export default Recognition;
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: '#F6FAF7',
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingHorizontal: 20,
   },
-  headerContainer: {
+  title: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#2E7D32',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  imagePicker: {
+    width: '100%',
+    height: 250,
+    backgroundColor: '#E9F5EC',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: '#A5D6A7',
+    borderWidth: 1.2,
+    overflow: 'hidden',
+  },
+  placeholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#777',
+  },
+  imagePreview: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  actionRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: height * 0.02,
-    paddingHorizontal: 16,
+    marginTop: 25,
+    gap: 10,
   },
-  headerText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  iconButton: {
-    marginRight: 12,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: '#f7f7f7',
-  },
-  dropdown: {
-    position: 'absolute',
-    top: 36,
-    right: 0,
-    backgroundColor: '#f7f7f7',
-    borderRadius: 6,
-    paddingVertical: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-    width: 120,
-    zIndex: 999,
-  },
-  dropdownItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  noHistoryText: {
-    marginTop: 20,
-    color: 'gray',
-  },
-  historyItem: {
+  analyzeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    backgroundColor: '#f2f2f2',
-    padding: 10,
-    borderRadius: 10,
-  },
-  historyImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-  },
-  historyText: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  fabContainer: {
-    position: 'absolute',
-    bottom: 30,
-    right: 30,
-    alignItems: 'center',
-  },
-  mainFab: {
-    width: 60,
-    height: 60,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
     borderRadius: 30,
-    backgroundColor: '#103713',
-    justifyContent: 'center',
-    alignItems: 'center',
+    elevation: 3,
+    gap: 8,
   },
-  subButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#103713',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
+  buttonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
   },
-  actionButton: {
-    position: 'absolute',
-    right: 0,
+  refreshButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: '#388E3C',
+    borderWidth: 1.2,
+    borderRadius: 30,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    gap: 6,
+  },
+  refreshText: {
+    color: '#388E3C',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  resultCard: {
+    marginTop: 35,
+    backgroundColor: '#fff',
+    width: '100%',
+    padding: 20,
+    borderRadius: 16,
+    elevation: 3,
+    maxHeight: 250,
+  },
+  resultTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#388E3C',
+    marginBottom: 10,
+  },
+  resultText: {
+    fontSize: 15,
+    color: '#333',
+    marginTop: 4,
+  },
+  label: {
+    fontWeight: 'bold',
+    color: '#2E7D32',
+  },
+  rawResponseBox: {
+    marginTop: 12,
+    backgroundColor: '#F0F8F1',
+    borderRadius: 10,
+    padding: 10,
+  },
+  rawResponseText: {
+    fontSize: 13,
+    color: '#444',
+    marginTop: 4,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  sheetContent: {
-    padding: 20,
-    gap: 12,
-  },
-  sheetButton: {
-    padding: 16,
-    borderRadius: 20,
-    backgroundColor: '#f7f7f7',
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
     alignItems: 'center',
+  },
+  loaderContainer: {
+    backgroundColor: '#fff',
+    padding: 30,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#333',
   },
 });

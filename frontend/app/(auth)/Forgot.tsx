@@ -34,7 +34,7 @@ const Forgot = () => {
 
   const handleSendResetEmail = async () => {
     try {
-      await api.post('/auth/password/reset/', { email });
+      await api.post('password-reset/', { email });
       ToastAndroid.show("Reset email sent. Check your inbox.", ToastAndroid.SHORT);
       bottomSheetRef.current?.expand();
     } catch (err: any) {
@@ -51,7 +51,7 @@ const Forgot = () => {
 
     try {
       setLoading(true);
-      await api.post('/auth/password/reset/confirm/', {
+      await api.post('password-reset/confirm/', {
         uid,
         token,
         new_password1: newPassword,
