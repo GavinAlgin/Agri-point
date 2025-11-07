@@ -84,6 +84,16 @@ class FarmingAdviceRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+# AI response
+class ai_response(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_interactions')
+    question  = models.TextField()
+    response = models.TextField()
+    created_at =models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
 # EXTENDING THE MODELS
 
 # USER AND ROLE MODELS
