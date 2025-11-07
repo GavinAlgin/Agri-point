@@ -150,7 +150,7 @@ const CropSelector = () => {
                     toggleSelection(index);
                   } else {
                     router.push({
-                      pathname: '/(screens)/GenerativeScreen',
+                      pathname: '/(screens)/EducateScreen',
                       params: {
                         crop: JSON.stringify(crop),
                       },

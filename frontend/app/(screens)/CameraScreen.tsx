@@ -1,58 +1,49 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Camera, CameraType } from 'expo-camera';
-import { useNavigation } from '@react-navigation/native';
-
-const width = Dimensions.get('window').width;
-
-const simulatedAgricultureData = [
-  "Detected: Wheat crop is healthy.",
-  "Detected: Tomato plants need more sunlight.",
-  "Detected: Corn field requires nitrogen fertilizer.",
-];
+import { useRouter } from 'expo-router';
 
 const CameraScreen = () => {
-  const navigation = useNavigation<any>();
+  const router = useRouter(); // ✅ useRouter hook
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanProgress, setScanProgress] = useState(0);
-  const [scanning, setScanning] = useState(true);
-
-  const cameraRef = useRef<Camera>(null);
+  const cameraRef = useRef<Camera | null>(null);
 
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
-      startScanning();
+      if (status === 'granted') {
+        // Delay to ensure root layout is mounted
+        setTimeout(startScanning, 500);
+      }
     })();
   }, []);
 
   const startScanning = () => {
     let progress = 0;
     const interval = setInterval(() => {
-      progress += 5;
+      progress += 10;
       setScanProgress(progress);
       if (progress >= 100) {
         clearInterval(interval);
-        const randomData = simulatedAgricultureData[Math.floor(Math.random() * simulatedAgricultureData.length)];
-        navigation.navigate('Generative', { scannedData: randomData });
+        const data = "Detected: Healthy corn field 🌽";
+        router.push({ pathname: '/(screens)/AIScreen', params: { scannedData: data } });
       }
-    }, 150);
+    }, 200);
   };
 
-  const handleCancel = () => {
-    navigation.goBack();
-  };
-
-  if (hasPermission === null) return <View style={styles.center}><Text>Requesting camera permission...</Text></View>;
-  if (hasPermission === false) return <View style={styles.center}><Text>No access to camera</Text></View>;
+  if (hasPermission === null)
+    return <View style={styles.center}><Text>Requesting camera permission...</Text></View>;
+  if (hasPermission === false)
+    return <View style={styles.center}><Text>No access to camera</Text></View>;
 
   return (
     <View style={styles.container}>
-      <Camera style={styles.camera} type={CameraType.back} ref={cameraRef}>
+      <Camera ref={cameraRef} style={styles.camera} type={CameraType.back}>
         <View style={styles.overlay}>
           <Text style={styles.scanText}>Scanning... {scanProgress}%</Text>
-          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+          <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
             <Text style={{ color: '#fff', fontWeight: 'bold' }}>Cancel</Text>
           </TouchableOpacity>
         </View>
@@ -66,7 +57,7 @@ export default CameraScreen;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   camera: { flex: 1 },
-  overlay: { flex: 1, justifyContent: 'flex-end', alignItems: 'center', paddingBottom: 30 },
+  overlay: { flex: 1, justifyContent: 'flex-end', alignItems: 'center', paddingBottom: 30, backgroundColor: 'rgba(0,0,0,0.3)' },
   scanText: { color: '#fff', fontSize: 18, marginBottom: 20 },
   cancelButton: { padding: 12, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 10 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },

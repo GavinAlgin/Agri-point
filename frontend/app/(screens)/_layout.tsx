@@ -20,6 +20,7 @@ const _layout = () => {
           <Stack.Screen name='ChatScreen' options={{ headerShown: false }} />
           <Stack.Screen name='WeatherScreen' options={{ headerShown: false }} />
           <Stack.Screen name='EducateScreen' options={{ headerShown: false }} />
+          <Stack.Screen name='EnvironmentControl' options={{ headerShown: false }} />
       </Stack>
     </AuthProvider>
     <StatusBar style='auto' />

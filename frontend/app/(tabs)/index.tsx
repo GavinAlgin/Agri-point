@@ -20,8 +20,7 @@ import { useAuth } from '@/utils/AuthContext';
 import api from '../server/api';
 import WeatherCard from '@/components/OSWeatherCard';
 import AgricultureCategories from '@/components/AgricultureCategories';
-// import WeatherCard from '@/components/OSWeatherCard';
-// import OSWeatherCard from '@/components/OSWeatherCard';
+import { EnvironmentSelector } from '@/components/EnvironmentSelector';
 
 const { width } = Dimensions.get('window');
 
@@ -126,6 +125,18 @@ const Index = () => {
           onLocationPress={() => router.push('/(screens)/MapViewScreen')}
           onAIPress={() => router.push('/(screens)/GenerativeScreen')}
         />
+
+        {/* Indoor */}
+        <View style={styles.categoryHeader}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Environment Selector</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>Learn More</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <EnvironmentSelector />
 
         {/* Suggestions Header */}
         <View style={styles.suggestionsHeader}>
